@@ -4,8 +4,6 @@ Date: 07-10-2024
 Description: Login page for MealHub, where users can sign in to their account.
 */
 
-
-
 "use client"
 
 import { useState } from "react"

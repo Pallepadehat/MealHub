@@ -1,3 +1,9 @@
+/*
+Developer: Patrick Jakobsen
+Date: 07-10-2024
+Description: onboarding page for MealHub, where users can set their preferences.
+*/
+
 "use client"
 
 import { useState } from "react"

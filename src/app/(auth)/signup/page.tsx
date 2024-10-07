@@ -4,8 +4,6 @@ Date: 07-10-2024
 Description: Signup page for MealHub, where users can create an account.
 */
 
-
-
 "use client"
 
 import { useState } from "react"

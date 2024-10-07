@@ -1,3 +1,11 @@
+/*
+Developer: Patrick Jakobsen
+Date: 07-10-2024
+Description: useAuth hook for MealHub, where users can authenticate and manage their account. Login, register, and update their profile.
+*/
+
+
+
 import { useState, useEffect } from 'react';
 import { Account, Client, ID, Databases, Models } from 'appwrite';
 import { useRouter } from 'next/navigation';
