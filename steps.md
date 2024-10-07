@@ -45,7 +45,7 @@ NEXT_PUBLIC_APPWRITE_PROJECT_ID=your_project_id
 1. Create the folder structure as outlined in your provided structure.
 2. Set up the basic `layout.tsx` and `page.tsx` files in the `src/app` directory.
 
-###  4. Create a landing page
+###  4. Create a landing page (Marc)
  1. Create a landing page to tell what the application is about
  2. Make the landing page using `layout.tsx` and `page.tsx` in the `src/app`
 
@@ -55,27 +55,27 @@ NEXT_PUBLIC_APPWRITE_PROJECT_ID=your_project_id
 2. Implement the `useAuth` hook in `src/hooks/useAuth.ts` for managing authentication state.
 
 
-### 6. Create the dashboard
+### 6. Create the dashboard (Gamze/Patrick)
 
 1. Implement the dashboard page in `src/app/dashboard/page.tsx`.
 2. Add navigation to other sections of the app.
 
 
-### 7. Implement ingredient management
+### 7. Implement ingredient management (Patrick/Gamze)
 
 1. Create the ingredients list page in `src/app/ingredients/page.tsx`.
 2. Implement the ingredient detail page in `src/app/ingredients/[id]/page.tsx`.
 3. Create `IngredientList` and `IngredientForm` components in `src/components/ingredients/`.
 
 
-### 8. Implement meal management
+### 8. Implement meal management (Patrick/Gamze)
 
 1. Create the meals list page in `src/app/meals/page.tsx`.
 2. Implement the meal detail page in `src/app/meals/[id]/page.tsx`.
 3. Create `MealList` and `MealForm` components in `src/components/meals/`.
 
 
-### 9. Implement shopping list functionality
+### 9. Implement shopping list functionality (Mathias)
 
 1. Create the shopping lists overview page in `src/app/shopping-lists/page.tsx`.
 2. Implement the shopping list detail page in `src/app/shopping-lists/[id]/page.tsx`.
@@ -84,55 +84,55 @@ NEXT_PUBLIC_APPWRITE_PROJECT_ID=your_project_id
 5. Create the `useShoppingList` hook in `src/hooks/useShoppingList.ts`.
 
 
-### 10. Implement user profile and settings
+### 10. Implement user profile and settings (Mathias)
 
 1. Create the user profile page in `src/app/profile/page.tsx`.
 2. Implement account deletion functionality in `src/app/profile/delete/page.tsx`.
 3. Create the settings page in `src/app/settings/page.tsx`.
 
 
-### 11. Implement categories management
+### 11. Implement categories management (Mathias)
 
 1. Create the categories management page in `src/app/categories/page.tsx`.
 
 
-### 12. Implement shopping list history
+### 12. Implement shopping list history (Mathias)
 
 1. Create the shopping list history page in `src/app/history/shopping-lists/page.tsx`.
 
 
-### 13. Add error handling and not found pages
+### 13. Add error handling and not found pages (Marc)
 
 1. Implement error handling in `src/app/error.tsx`.
 2. Create a not found page in `src/app/not-found.tsx`.
 
 
-### 14. Implement responsive design
+### 14. Implement responsive design (All)
 
 1. Use Tailwind CSS classes to make all components responsive.
 2. Test the application on various device sizes.
 
 
-### 15. Add security measures
+### 15. Add security measures (Patrick)
 
 1. Implement input validation on all forms.
 2. Sanitize user input to prevent XSS attacks.
 3. Ensure secure data storage in Appwrite.
 
 
-### 16. Write documentation
+### 16. Write documentation (All)
 
 1. Update the `README.md` file with project setup instructions and feature explanations.
 2. Document the data flow and client-server interactions.
 
 
-### 17. Implement testing
+### 17. Implement testing (All)
 
 1. Write unit tests for critical components and functions.
 2. Implement integration tests for key features like shopping list generation and user management.
 
 
-### 18. Final review and deployment
+### 18. Final review and deployment (Rasmus)
 
 1. Conduct a final review of all features and functionality.
 2. Deploy the application to a hosting platform of your choice (e.g., Vercel).
