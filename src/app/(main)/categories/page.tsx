@@ -28,7 +28,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
-const categories = [
+interface Category {
+    name: string
+    image: string
+    count: number
+}
+
+const categories: Category[] = [
     { name: "Breakfast", image: "/placeholder.svg?height=100&width=100", count: 25 },
     { name: "Lunch", image: "/placeholder.svg?height=100&width=100", count: 32 },
     { name: "Dinner", image: "/placeholder.svg?height=100&width=100", count: 40 },
@@ -39,7 +45,7 @@ const categories = [
     { name: "Gluten-Free", image: "/placeholder.svg?height=100&width=100", count: 15 },
 ]
 
-export default function CategoriesPage() {
+const CategoriesPage: React.FC = () => {
     return (
         <div className="flex min-h-screen w-full flex-col">
             <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -211,3 +217,5 @@ export default function CategoriesPage() {
         </div>
     )
 }
+
+export default CategoriesPage
