@@ -13,5 +13,5 @@ const Page = () => {
         </div>
     );
 };
-ad
+
 export default Page;
