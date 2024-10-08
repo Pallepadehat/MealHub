@@ -34,7 +34,17 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
-const dietTypes = [
+interface DietType {
+    id: string
+    label: string
+}
+
+interface AllergyType {
+    id: string
+    label: string
+}
+
+const dietTypes: DietType[] = [
     { id: "omnivore", label: "Omnivore" },
     { id: "vegetarian", label: "Vegetarian" },
     { id: "vegan", label: "Vegan" },
@@ -43,7 +53,7 @@ const dietTypes = [
     { id: "paleo", label: "Paleo" },
 ]
 
-const commonAllergies = [
+const commonAllergies: AllergyType[] = [
     { id: "dairy", label: "Dairy" },
     { id: "eggs", label: "Eggs" },
     { id: "peanuts", label: "Peanuts" },
@@ -55,7 +65,7 @@ const commonAllergies = [
 ]
 
 export default function SettingsPage() {
-    const [selectedDiet, setSelectedDiet] = useState("omnivore")
+    const [selectedDiet, setSelectedDiet] = useState<string>("omnivore")
     const [selectedAllergies, setSelectedAllergies] = useState<string[]>([])
 
     const handleAllergyChange = (allergyId: string) => {
@@ -198,6 +208,8 @@ export default function SettingsPage() {
                         </Link>
                         <Link href="#">Notifications</Link>
                         <Link href="#">Privacy</Link>
+                        <Link href="#">Integrations</Link>
+                        <Link href="#">Subscription</Link>
                         <Link href="#">Advanced</Link>
                     </nav>
                     <div className="grid gap-6">
@@ -287,7 +299,7 @@ export default function SettingsPage() {
                                             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                         >
                                             Receive email notifications
-                                        </label>Allergies
+                                        </label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <Checkbox id="push-notifications" />
