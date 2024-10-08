@@ -1,3 +1,10 @@
+/*
+Developer: Mathias Holst Seeger
+Date: 08-10-2024
+Description: This is the settings page where the user can change their profile information, dietary preferences, allergies and notification settings.
+*/
+
+
 'use client'
 
 import { useState } from 'react'
