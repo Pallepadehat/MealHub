@@ -6,7 +6,7 @@ Description: Signup page for MealHub, where users can create an account.
 
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -24,7 +24,13 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const { register } = useAuth()
+  const { register, user } = useAuth()
+
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard')
+    }
+  }, [user, router])
 
 
     const handleSubmit = async (e: React.FormEvent) => {
