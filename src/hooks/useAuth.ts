@@ -1,10 +1,4 @@
-/*
-Developer: Patrick Jakobsen
-Date: 07-10-2024
-Description: useAuth hook for MealHub, where users can authenticate and manage their account. Login, register, and update their profile.
-*/
-
-
+"use client"
 
 import { useState, useEffect } from 'react';
 import { Account, Client, ID, Databases, Models } from 'appwrite';
@@ -36,18 +30,29 @@ export function useAuth() {
     checkUserStatus();
   }, []);
 
+  const fetchUserData = async (userId: string): Promise<User | null> => {
+    try {
+      const userData = await databases.getDocument<User>(
+        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+        process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION_ID!,
+        userId
+      );
+      return userData;
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      return null;
+    }
+  };
+
   const checkUserStatus = async () => {
     try {
       const session = await account.get();
       if (session) {
-        const userData = await databases.getDocument<User>(
-          process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
-          process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION_ID!,
-          session.$id
-        );
+        const userData = await fetchUserData(session.$id);
         setUser(userData);
       }
     } catch (error) {
+      console.error('Error checking user status:', error);
       setUser(null);
     } finally {
       setLoading(false);
@@ -56,10 +61,11 @@ export function useAuth() {
 
   const login = async (email: string, password: string) => {
     try {
-      await account.createEmailPasswordSession(email, password);
-      await checkUserStatus();
+      const session = await account.createEmailPasswordSession(email, password);
+      const userData = await fetchUserData(session.userId);
+      setUser(userData);
     } catch (error) {
-      console.error('Login failed', error);
+      console.error('Login failed:', error);
       throw error;
     }
   };
@@ -68,9 +74,9 @@ export function useAuth() {
     try {
       await account.deleteSession('current');
       setUser(null);
-      router.push('/auth/login');
+      router.push('/login');
     } catch (error) {
-      console.error('Logout failed', error);
+      console.error('Logout failed:', error);
       throw error;
     }
   };
@@ -97,19 +103,25 @@ export function useAuth() {
       await login(email, password);
       return newAccount;
     } catch (error) {
-      console.error('Registration failed', error);
+      console.error('Registration failed:', error);
       throw error;
     }
   };
 
-  const updateUserProfile = async (name: string, dietType: string, allergies: string[], cookingExperience: string, mealPlanningGoals: string) => {
+  const updateUserProfile = async (
+    name: string,
+    dietType: string,
+    allergies: string[],
+    cookingExperience: string,
+    mealPlanningGoals: string
+  ) => {
     if (!user) throw new Error('User not authenticated');
 
     try {
       await account.updateName(name);
 
       // Update the user document in the users collection
-      await databases.updateDocument<User>(
+      const updatedUser = await databases.updateDocument<User>(
         process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
         process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION_ID!,
         user.$id,
@@ -122,9 +134,9 @@ export function useAuth() {
         }
       );
 
-      await checkUserStatus();
+      setUser(updatedUser);
     } catch (error) {
-      console.error('Profile update failed', error);
+      console.error('Profile update failed:', error);
       throw error;
     }
   };
@@ -136,5 +148,6 @@ export function useAuth() {
     logout,
     register,
     updateUserProfile,
+    fetchUserData,
   };
 }

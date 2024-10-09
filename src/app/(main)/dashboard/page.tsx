@@ -1,16 +1,20 @@
-"use client"
+/*
+Developer: Patrick Jakobsen
+Date: 08-10-2024
+Description: The complete dashboard page.
+*/
 
-import { useAuth } from '@/hooks/useAuth'
-import { Button } from '@/components/ui/button'
+import { RecentMealsWidget, CurrentShoppingListWidget, QuickAddWidget } from "@/components/dashboard/DashboardWidgets"
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth()
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-100 to-blue-100">
-      <h1 className="text-4xl font-bold mb-6">Welcome to your Dashboard</h1>
-      <p className="text-xl mb-8">Hello, {user?.name}!</p>
-      <Button onClick={logout}>Logout</Button>
+    <div className="space-y-6">
+      <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <RecentMealsWidget />
+        <CurrentShoppingListWidget />
+        <QuickAddWidget />
+      </div>
     </div>
   )
 }

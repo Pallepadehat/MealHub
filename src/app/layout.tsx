@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { AuthWrapper } from "@/components/layout/authWrapper";
+import './markdown-styles.css';
 
 
 

@@ -2,8 +2,8 @@
 import { Client, Account, Databases, Storage, ID, Query } from 'appwrite';
 
 const client = new Client()
-    .setEndpoint(process.env.NEXT_PUBLIC_ENDPOINT!) // Your Appwrite Endpoint
-    .setProject(process.env.NEXT_PUBLIC_PROJECT!); // Your project ID
+    .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!) // Your Appwrite Endpoint
+    .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!); // Your project ID
 
  const account = new Account(client);
  const databases = new Databases(client);

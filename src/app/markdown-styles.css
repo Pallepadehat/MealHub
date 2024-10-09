@@ -1,0 +1,55 @@
+.prose {
+    @apply text-sm leading-normal;
+  }
+
+  .prose p {
+    @apply mb-4;
+  }
+
+  .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+    @apply font-bold mb-2 mt-6;
+  }
+
+  .prose h1 {
+    @apply text-2xl;
+  }
+
+  .prose h2 {
+    @apply text-xl;
+  }
+
+  .prose h3 {
+    @apply text-lg;
+  }
+
+  .prose ul, .prose ol {
+    @apply ml-6 mb-4;
+  }
+
+  .prose ul {
+    @apply list-disc;
+  }
+
+  .prose ol {
+    @apply list-decimal;
+  }
+
+  .prose strong {
+    @apply font-bold;
+  }
+
+  .prose em {
+    @apply italic;
+  }
+
+  .prose code {
+    @apply bg-gray-100 dark:bg-gray-800 rounded px-1 py-0.5;
+  }
+
+  .prose pre {
+    @apply bg-gray-100 dark:bg-gray-800 rounded p-4 mb-4 overflow-x-auto;
+  }
+
+  .prose blockquote {
+    @apply border-l-4 border-gray-300 dark:border-gray-700 pl-4 italic;
+  }

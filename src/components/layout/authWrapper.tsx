@@ -1,39 +1,35 @@
-"use client"
+/*
+Developer: Patrick Jakobsen
+Date: 08-10-2024
+Description: AuthWrapper makes sure the pages are protected and only accessible to authenticated users.
+*/
+
+'use client'
 
 import { useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
-import { Loader2 } from 'lucide-react'
 
-interface AuthWrapperProps {
-  children: React.ReactNode
-}
-
-const publicRoutes = ['/', '/login', '/signup', '/auth/login', '/auth/signup']
-
-export function AuthWrapper({ children }: AuthWrapperProps) {
+export function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   const router = useRouter()
-  const pathname = usePathname()
 
   useEffect(() => {
-    if (!loading && !user && !publicRoutes.includes(pathname)) {
+    if (!loading && !user) {
       router.push('/login')
     }
-  }, [user, loading, router, pathname])
+  }, [user, loading, router])
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin mb-2" />
-        <p className='text-sm text-center text-muted-foreground'>We are loading your account...</p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-loader-circle w-8 h-8 animate-spin mb-2">
+          <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+        </svg>
+        <p className="text-sm text-center text-muted-foreground">We are loading your account...</p>
       </div>
     )
   }
 
-  if (!user && !publicRoutes.includes(pathname)) {
-    return null
-  }
-
-  return <>{children}</>
+  return children
 }
