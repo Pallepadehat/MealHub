@@ -1,26 +1,36 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { Toaster } from "react-hot-toast";
-import { AuthWrapper } from "@/components/layout/authWrapper";
-import './markdown-styles.css';
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import { AuthProvider } from '@/components/auth/AuthContext'
+// import Footer from '@/components/layout/Footer'
+import './globals.css'
+import { Toaster } from 'react-hot-toast'
 
-
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "MealHub - A meal planning app",
-  description: "MealHub is a meal planning app that helps you plan your meals for the week.",
-};
+  title: 'MealHub',
+  description: 'Your personal meal planning assistant',
+}
 
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+// Root layout component
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <body>
-        <AuthWrapper>
-          {children}
-        </AuthWrapper>
-        <Toaster position="top-center" reverseOrder={false} />
+      <body className={`${inter.className}`}>
+        <AuthProvider>
+          <main className="">
+            {children}
+            <Toaster />
+          </main>
+         {/*  <Footer /> */}
+        </AuthProvider>
       </body>
     </html>
   )
 }
+
+// Contributor: [Your Name]

@@ -1,19 +1,17 @@
-// src/lib/appwrite.ts
-import { Client, Account, Databases, Storage, ID, Query } from 'appwrite';
+import { Client, Account, Databases } from 'appwrite';
+import { config } from '@/config';
 
 const client = new Client()
-    .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!) // Your Appwrite Endpoint
-    .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!); // Your project ID
+    .setEndpoint(config.appwrite.endpoint)
+    .setProject(config.appwrite.projectId);
 
- const account = new Account(client);
- const databases = new Databases(client);
- const storage = new Storage(client);
+export const account = new Account(client);
+export const databases = new Databases(client);
 
+export const DATABASE_ID = config.appwrite.databaseId;
+export const USERS_COLLECTION_ID = config.appwrite.usersCollectionId;
 
-export {client, ID, Query, account, storage, databases};
-
-
-export const getAuthRedirect = () => {
-    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
-    return `${currentOrigin}/auth-redirect`;
-};
+/*
+Developer: Patrick Jakobsen
+Date: 09-10-2024
+*/
