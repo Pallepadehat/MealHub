@@ -2,19 +2,20 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/components/auth/AuthContext'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ShoppingCart, Edit, Trash2, Archive, History, RefreshCcw, Check, Plus, Search } from 'lucide-react'
+import { ShoppingCart, Edit, Trash2, Archive, History, RefreshCcw, Check, Plus, Search, UtensilsCrossed } from 'lucide-react'
 import { databases } from '@/lib/appwrite'
 import { Query, ID } from 'appwrite'
 import { toast } from 'react-hot-toast'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { motion, AnimatePresence } from 'framer-motion'
 import ImportFromMeal from './ImportFromMeal'
 import EditShoppingItem from './EditShoppingItem'
 
@@ -280,7 +281,7 @@ export default function ShoppingList() {
             name: item.name,
             quantity: item.quantity,
             unit: item.unit,
-            category: item.category,
+            category: item.category || 'Other',
             checked: false
           }
         )
@@ -356,225 +357,279 @@ export default function ShoppingList() {
   const completedLists = shoppingLists.filter(list => list.isDone)
 
   return (
-    <Card className="w-full max-w-4xl mx-auto bg-gradient-to-br from-primary/5 to-secondary/5">
-      <CardHeader>
-        <CardTitle className="text-3xl font-bold flex items-center justify-between text-primary">
-          <div className="flex items-center">
-            <ShoppingCart className="mr-2 h-8 w-8" />
-            MealHub Shopping Lists
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-4xl bg-white shadow-2xl rounded-3xl overflow-hidden">
+        <CardHeader className="text-center bg-gradient-to-r from-blue-600 to-indigo-600 p-8">
+          <div className="flex justify-center mb-6">
+            <UtensilsCrossed size={64} className="text-white" />
           </div>
-        </CardTitle>
-        <CardDescription>Manage your shopping lists with ease</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="active" className="text-lg">
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              Active Lists
-            </TabsTrigger>
-            <TabsTrigger value="history" className="text-lg">
-              <History className="mr-2 h-5 w-5" />
-              History
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="active">
-            <div className="space-y-6">
-              <div className="flex items-center space-x-4">
-                <Button onClick={createNewList} className="flex-grow">
-                  <Plus className="mr-2 h-5 w-5" /> New List
-                </Button>
-                <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="flex-grow">Import from  Meal</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Import from Meal</DialogTitle>
-                    </DialogHeader>
-                    <ImportFromMeal onImport={handleImport} />
-                  </DialogContent>
-                </Dialog>
-              </div>
-              {activeLists.length > 1 && (
-                <Select
-                  value={currentList?.id || ''}
-                  onValueChange={(value) =>
-                    setCurrentList(activeLists.find(list => list.id === value) || null)
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a list" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {activeLists.map(list => (
-                      <SelectItem key={list.id} value={list.id}>
-                        {list.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              {currentList && (
-                <Card className="bg-card">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-2xl font-semibold flex items-center justify-between">
-                      {isEditingListName ? (
-                        <Input
-                          value={editedListName}
-                          onChange={(e) => setEditedListName(e.target.value)}
-                          onBlur={handleListNameChange}
-                          onKeyPress={(e) => e.key === 'Enter' && handleListNameChange()}
-                          className="text-2xl font-semibold"
-                        />
-                      ) : (
-                        <span onClick={() => setIsEditingListName(true)}>{currentList.name}</span>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleListCompletion(currentList.id, true)}
-                      >
-                        <Check className="h-5 w-5" />
-                      </Button>
-                    </CardTitle>
-                    <CardDescription>
-                      Created on: {new Date(currentList.createdAt).toLocaleDateString()}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-2">
-                        <div className="relative flex-grow">
+          <CardTitle className="text-4xl font-bold text-white mb-2">MealHub Shopping Lists</CardTitle>
+          <CardDescription className="text-blue-100 text-lg">Manage your shopping lists with ease</CardDescription>
+        </CardHeader>
+        <CardContent className="p-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+
+              <TabsTrigger value="active" className="text-lg">
+                <ShoppingCart className="mr-2 h-5 w-5" />
+                Active Lists
+              </TabsTrigger>
+              <TabsTrigger value="history" className="text-lg">
+                <History className="mr-2 h-5 w-5" />
+                History
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="active">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center space-x-4">
+                  <Button onClick={createNewList} className="flex-grow bg-blue-600 hover:bg-blue-700 text-white">
+                    <Plus className="mr-2 h-5 w-5" /> New List
+                  </Button>
+                  <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="flex-grow">Import from Meal</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Import from Meal</DialogTitle>
+                      </DialogHeader>
+                      <ImportFromMeal onImport={handleImport} />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                {activeLists.length > 1 && (
+                  <Select
+                    value={currentList?.id || ''}
+                    onValueChange={(value) =>
+                      setCurrentList(activeLists.find(list => list.id === value) || null)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a list" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activeLists.map(list => (
+                        <SelectItem key={list.id} value={list.id}>
+                          {list.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                {currentList && (
+                  <Card className="bg-white shadow-md rounded-lg overflow-hidden">
+                    <CardHeader className="bg-blue-50 pb-2">
+                      <CardTitle className="text-2xl font-semibold flex items-center justify-between">
+                        {isEditingListName ? (
                           <Input
-                            type="text"
-                            placeholder="Add new item or search..."
-                            value={newItem || searchTerm}
-                            onChange={(e) => {
-                              const value = e.target.value
-                              setNewItem(value)
-                              searchIngredients(value)
-                            }}
-                            className="pr-10"
+                            value={editedListName}
+                            onChange={(e) => setEditedListName(e.target.value)}
+                            onBlur={handleListNameChange}
+                            onKeyPress={(e) => e.key === 'Enter' && handleListNameChange()}
+                            className="text-2xl font-semibold"
                           />
-                          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <Button onClick={addItem} disabled={!newItem.trim()}>
-                          <Plus className="mr-2 h-4 w-4" /> Add
+                        ) : (
+                          <span onClick={() => setIsEditingListName(true)}>{currentList.name}</span>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleListCompletion(currentList.id, true)}
+                        >
+                          <Check className="h-5 w-5" />
                         </Button>
-                      </div>
-                      {suggestions.length > 0 && (
-                        <Card className="mt-2">
-                          <CardContent className="p-2">
-                            <ScrollArea className="h-32">
-                              {suggestions.map((suggestion, index) => (
-                                <Button
-                                  key={index}
-                                  variant="ghost"
-                                  className="w-full justify-start"
-                                  onClick={() => {
-                                    setNewItem(suggestion.name)
-                                    setSuggestions([])
-                                  }}
-                                >
-                                  {suggestion.name}
-                                </Button>
-                              ))}
-                            </ScrollArea>
-                          </CardContent>
-                        </Card>
-                      )}
-                      <ScrollArea className="h-[400px] pr-4">
-                        {Object.entries(groupedItems).map(([category, items]) => (
-                          <div key={category} className="mb-4">
-                            <h3 className="text-lg font-semibold mb-2">{category}</h3>
-                            {items.map((item) => (
-                              <div key={item.id} className="flex items-center space-x-2 py-2 border-b">
-                                <Checkbox
-                                  checked={item.checked}
-                                  onCheckedChange={() => toggleItemCheck(item.id)}
-                                  id={`item-${item.id}`}
-                                />
-                                <label
-                                  htmlFor={`item-${item.id}`}
-                                  className={`flex-grow ${item.checked ? 'line-through text-muted-foreground' : ''}`}
-                                >
-                                  {item.name} {item.quantity && `(${item.quantity} ${item.unit})`}
-                                </label>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    setEditingItem(item)
-                                    setIsEditDialogOpen(true)
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => deleteItem(item.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ))}
+                      </CardTitle>
+                      <CardDescription>
+                        Created on: {new Date(currentList.createdAt).toLocaleDateString()}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2">
+                          <div className="relative flex-grow">
+                            <Input
+                              type="text"
+                              placeholder="Add new item or search..."
+                              value={newItem || searchTerm}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                setNewItem(value)
+                                searchIngredients(value)
+                              }}
+                              className="pr-10"
+                            />
+                            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           </div>
-                        ))}
-                      </ScrollArea>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-              {activeLists.length === 0 && (
-                <Card className="bg-muted">
-                  <CardContent className="flex flex-col items-center justify-center h-40">
-                    <p className="text-center text-muted-foreground mb-4">
-                      You don't have any active shopping lists.
-                    </p>
-                    <Button onClick={createNewList}>
-                      <Plus className="mr-2 h-4 w-4" /> Create a New List
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </TabsContent>
-          <TabsContent value="history">
-            <ScrollArea className="h-[600px] pr-4">
-              {completedLists.map((list) => (
-                <Card key={list.id} className="mb-4 bg-muted/50">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span>{list.name}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleListCompletion(list.id, false)}
-                      >
-                        <RefreshCcw className="h-5 w-5" />
+                          <Button onClick={addItem} disabled={!newItem.trim()} className="bg-blue-600 hover:bg-blue-700 text-white">
+                            <Plus className="mr-2 h-4 w-4" /> Add
+                          </Button>
+                        </div>
+                        <AnimatePresence>
+                          {suggestions.length > 0 && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Card className="mt-2">
+                                <CardContent className="p-2">
+                                  <ScrollArea className="h-32">
+                                    {suggestions.map((suggestion, index) => (
+                                      <Button
+                                        key={index}
+                                        variant="ghost"
+                                        className="w-full justify-start"
+                                        onClick={() => {
+                                          setNewItem(suggestion.name)
+                                          setSuggestions([])
+                                        }}
+                                      >
+                                        {suggestion.name}
+                                      </Button>
+                                    ))}
+                                  </ScrollArea>
+                                </CardContent>
+                              </Card>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                        <ScrollArea className="h-[400px] pr-4">
+                          <AnimatePresence>
+                            {Object.entries(groupedItems).map(([category, items]) => (
+                              <motion.div
+                                key={category}
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2 }}
+                                className="mb-4"
+                              >
+                                <h3 className="text-lg font-semibold mb-2 text-blue-700">{category}</h3>
+                                {items.map((item) => (
+                                  <motion.div
+                                    key={item.id}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="flex items-center space-x-2 py-2 border-b border-blue-100"
+                                  >
+                                    <Checkbox
+                                      checked={item.checked}
+                                      onCheckedChange={() => toggleItemCheck(item.id)}
+                                      id={`item-${item.id}`}
+                                    />
+                                    <label
+                                      htmlFor={`item-${item.id}`}
+                                      className={`flex-grow ${item.checked ? 'line-through text-blue-400' : 'text-blue-800'}`}
+                                    >
+                                      {item.name} {item.quantity && `(${item.quantity} ${item.unit})`}
+                                    </label>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setEditingItem(item)
+                                        setIsEditDialogOpen(true)
+                                      }}
+                                    >
+                                      <Edit className="h-4 w-4 text-blue-500" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => deleteItem(item.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-blue-500" />
+                                    </Button>
+                                  </motion.div>
+                                ))}
+                              </motion.div>
+                            ))}
+                          </AnimatePresence>
+                        </ScrollArea>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                {activeLists.length === 0 && (
+                  <Card className="bg-blue-50">
+                    <CardContent className="flex flex-col items-center justify-center h-40">
+                      <p className="text-center text-blue-600 mb-4">
+                        You don't have any active shopping lists.
+                      </p>
+                      <Button onClick={createNewList} className="bg-blue-600 hover:bg-blue-700 text-white">
+                        <Plus className="mr-2 h-4 w-4" /> Create a New List
                       </Button>
-                    </CardTitle>
-                    <CardDescription>
-                      Completed on: {new Date(list.createdAt).toLocaleDateString()}
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-              ))}
-              {completedLists.length === 0 && (
-                <Card className="bg-muted">
-                  <CardContent className="flex items-center justify-center h-40">
-                    <p className="text-center text-muted-foreground">
-                      You don't have any completed shopping lists yet.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </ScrollArea>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
+                    </CardContent>
+                  </Card>
+                )}
+              </motion.div>
+            </TabsContent>
+            <TabsContent value="history">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
+              >
+                <ScrollArea className="h-[600px] pr-4">
+                  <AnimatePresence>
+                    {completedLists.map((list) => (
+                      <motion.div
+                        key={list.id}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Card className="mb-4 bg-blue-50">
+                          <CardHeader>
+                            <CardTitle className="flex items-center justify-between text-blue-700">
+                              <span>{list.name}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleListCompletion(list.id, false)}
+                              >
+                                <RefreshCcw className="h-5 w-5 text-blue-500" />
+                              </Button>
+                            </CardTitle>
+                            <CardDescription className="text-blue-600">
+                              Completed on: {new Date(list.createdAt).toLocaleDateString()}
+                            </CardDescription>
+                          </CardHeader>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                  {completedLists.length === 0 && (
+                    <Card className="bg-blue-50">
+                      <CardContent className="flex items-center justify-center h-40">
+                        <p className="text-center text-blue-600">
+                          You don't have any completed shopping lists yet.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </ScrollArea>
+              </motion.div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+        <CardFooter className="bg-gray-50 p-6">
+          <p className="text-sm text-gray-500 text-center w-full">
+            MealHub - Your personal meal planning assistant
+          </p>
+        </CardFooter>
+      </Card>
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -585,6 +640,6 @@ export default function ShoppingList() {
           )}
         </DialogContent>
       </Dialog>
-    </Card>
+    </div>
   )
 }

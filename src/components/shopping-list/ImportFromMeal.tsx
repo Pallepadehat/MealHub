@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
 import { databases } from '@/lib/appwrite'
 import { Query } from 'appwrite'
 import { toast } from 'react-hot-toast'
@@ -53,20 +54,17 @@ export default function ImportFromMeal({ onImport }: ImportFromMealProps) {
 
   const fetchMealsAndIngredients = async () => {
     try {
-      // Fetch meals
       const mealsResponse = await databases.listDocuments(
         process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
         process.env.NEXT_PUBLIC_APPWRITE_MEALS_ID!,
         [Query.equal('userId', user!.id)]
       )
 
-      // Fetch all ingredients
       const ingredientsResponse = await databases.listDocuments(
         process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
         process.env.NEXT_PUBLIC_APPWRITE_INGREDIENTS_ID!
       )
 
-      // Combine meals with their ingredients
       const mealsWithIngredients = mealsResponse.documents.map(meal => ({
         id: meal.$id,
         name: meal.name,
@@ -77,7 +75,7 @@ export default function ImportFromMeal({ onImport }: ImportFromMealProps) {
             name: ingredient.name,
             quantity: ingredient.quantity,
             unit: ingredient.unit,
-            category: ingredient.category
+            category: ingredient.category || 'Other' // Provide a default category if it's missing
           }))
       }))
 
@@ -134,32 +132,38 @@ export default function ImportFromMeal({ onImport }: ImportFromMealProps) {
       </div>
       <ScrollArea className="h-[300px] pr-4">
         {filteredMeals.map(meal => (
-          <div key={meal.id} className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-semibold">{meal.name}</h3>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => toggleAllInMeal(meal)}
-              >
-                {meal.ingredients.every(ingredient =>
-                  selectedIngredients.some(i => i.id === ingredient.id)
-                ) ? 'Deselect All' : 'Select All'}
-              </Button>
-            </div>
-            {meal.ingredients.map(ingredient => (
-              <div key={ingredient.id} className="flex items-center space-x-2 py-1">
-                <Checkbox
-                  checked={selectedIngredients.some(i => i.id === ingredient.id)}
-                  onCheckedChange={() => toggleIngredient(ingredient)}
-                  id={`ingredient-${ingredient.id}`}
-                />
-                <label htmlFor={`ingredient-${ingredient.id}`} className="flex-grow">
-                  {ingredient.name} ({ingredient.quantity} {ingredient.unit})
-                </label>
+          <Card key={meal.id} className="mb-4">
+            <CardContent>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold">{meal.name}</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => toggleAllInMeal(meal)}
+                >
+                  {meal.ingredients.every(ingredient =>
+                    selectedIngredients.some(i => i.id === ingredient.id)
+                  ) ? 'Deselect All' : 'Select All'}
+                </Button>
               </div>
-            ))}
-          </div>
+              {meal.ingredients.length > 0 ? (
+                meal.ingredients.map(ingredient => (
+                  <div key={ingredient.id} className="flex items-center space-x-2 py-1">
+                    <Checkbox
+                      checked={selectedIngredients.some(i => i.id === ingredient.id)}
+                      onCheckedChange={() => toggleIngredient(ingredient)}
+                      id={`ingredient-${ingredient.id}`}
+                    />
+                    <label htmlFor={`ingredient-${ingredient.id}`} className="flex-grow">
+                      {ingredient.name} ({ingredient.quantity} {ingredient.unit}) - {ingredient.category}
+                    </label>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">No ingredients found for this meal.</p>
+              )}
+            </CardContent>
+          </Card>
         ))}
       </ScrollArea>
       <Button onClick={handleImport} disabled={selectedIngredients.length === 0}>

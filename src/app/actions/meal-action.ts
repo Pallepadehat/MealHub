@@ -23,7 +23,7 @@ export async function saveMeal(meal: Omit<MealWithIngredients, 'id'>, userId: st
       protein: meal.protein,
       carbs: meal.carbs,
       fat: meal.fat,
-      createdAt: new Date().toISOString(), // Add this line
+      createdAt: new Date().toISOString(),
     };
 
     const savedMeal = await databases.createDocument(
@@ -33,7 +33,7 @@ export async function saveMeal(meal: Omit<MealWithIngredients, 'id'>, userId: st
       mealToSave
     );
 
-    // Save ingredients
+    // Save ingredients with category
     const ingredientPromises = meal.ingredients.map((ingredient) =>
       databases.createDocument(
         process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
@@ -43,7 +43,8 @@ export async function saveMeal(meal: Omit<MealWithIngredients, 'id'>, userId: st
           meal_id: savedMeal.$id,
           name: ingredient.name,
           quantity: ingredient.quantity,
-          unit: ingredient.unit
+          unit: ingredient.unit,
+          category: ingredient.category
         }
       )
     );
@@ -57,7 +58,6 @@ export async function saveMeal(meal: Omit<MealWithIngredients, 'id'>, userId: st
   }
 }
 
-
 export async function updateMeal(meal: MealWithIngredients) {
   try {
     const updatedMeal = await databases.updateDocument(
@@ -68,7 +68,16 @@ export async function updateMeal(meal: MealWithIngredients) {
         name: meal.name,
         description: meal.description,
         mealType: meal.mealType,
-        // ... other fields
+        instructions: meal.instructions,
+        nutritionalBenefits: meal.nutritionalBenefits,
+        servings: meal.servings,
+        prepTime: meal.prepTime,
+        cookTime: meal.cookTime,
+        totalTime: meal.totalTime,
+        calories: meal.calories,
+        protein: meal.protein,
+        carbs: meal.carbs,
+        fat: meal.fat
       }
     );
 
@@ -97,7 +106,8 @@ export async function updateMeal(meal: MealWithIngredients) {
           meal_id: meal.id,
           name: ingredient.name,
           quantity: ingredient.quantity,
-          unit: ingredient.unit
+          unit: ingredient.unit,
+          category: ingredient.category
         }
       )
     );
@@ -142,7 +152,6 @@ export async function deleteMeal(mealId: string) {
   }
 }
 
-
 export async function getMeals(userId: string, limit?: number): Promise<MealWithIngredients[]> {
   try {
     const meals = await databases.listDocuments(
@@ -184,7 +193,8 @@ export async function getMeals(userId: string, limit?: number): Promise<MealWith
           meal_id: ing.meal_id,
           name: ing.name,
           quantity: ing.quantity,
-          unit: ing.unit
+          unit: ing.unit,
+          category: ing.category
         } as Ingredient))
       } as MealWithIngredients;
     }));
@@ -195,7 +205,6 @@ export async function getMeals(userId: string, limit?: number): Promise<MealWith
     return [];
   }
 }
-
 
 export async function getMealWithIngredients(mealId: string): Promise<{ success: boolean, meal?: MealWithIngredients, error?: string }> {
   try {
@@ -216,7 +225,8 @@ export async function getMealWithIngredients(mealId: string): Promise<{ success:
       meal_id: doc.meal_id,
       name: doc.name,
       quantity: doc.quantity,
-      unit: doc.unit
+      unit: doc.unit,
+      category: doc.category
     })) as Ingredient[];
 
     const mealWithIngredients: MealWithIngredients = {
@@ -236,7 +246,7 @@ export async function getMealWithIngredients(mealId: string): Promise<{ success:
       carbs: meal.carbs,
       fat: meal.fat,
       ingredients: ingredients,
-      createdAt: meal.$createdAt // Add this line
+      createdAt: meal.$createdAt
     };
 
     return { success: true, meal: mealWithIngredients };
@@ -254,8 +264,8 @@ export async function generateMealWithAI(prompt: string, servings: number, user:
   "description": "Brief description of the meal",
   "mealType": "breakfast|lunch|dinner|snack",
   "ingredients": [
-    {"name": "Ingredient 1", "quantity": "Amount", "unit": "Unit of measurement"},
-    {"name": "Ingredient 2", "quantity": "Amount", "unit": "Unit of measurement"}
+    {"name": "Ingredient 1", "quantity": "Amount", "unit": "Unit of measurement", "category": "Ingredient category"},
+    {"name": "Ingredient 2", "quantity": "Amount", "unit": "Unit of measurement", "category": "Ingredient category"}
   ],
   "instructions": [
     "Step 1 instruction",
@@ -274,7 +284,7 @@ export async function generateMealWithAI(prompt: string, servings: number, user:
   "fat": 0
 }
 
-Ensure that the response is a valid JSON object and includes all the fields mentioned above.
+Ensure that the response is a valid JSON object and includes all the fields mentioned above. For the ingredient category, use one of the following: Produce, Dairy, Meat, Seafood, Bakery, Pantry, Frozen, Beverages, Spices, or Other.
 
 User dietary information:
 - Diet: ${user.diet || 'Not specified'}
@@ -325,6 +335,8 @@ User dietary information:
   }
 }
 
+
+
 function processResponse(response: string): Omit<MealWithIngredients, 'id' | 'userId'> {
   try {
     const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -346,7 +358,14 @@ function processResponse(response: string): Omit<MealWithIngredients, 'id' | 'us
       name: mealData.name || '',
       description: mealData.description || '',
       mealType: ['breakfast', 'lunch', 'dinner', 'snack'].includes(mealData.mealType) ? mealData.mealType : 'snack',
-      ingredients: Array.isArray(mealData.ingredients) ? mealData.ingredients : [],
+      ingredients: Array.isArray(mealData.ingredients) ? mealData.ingredients.map((ing: Partial<Ingredient>) => ({
+        id: ing.id || '',
+        meal_id: ing.meal_id || '',
+        name: ing.name || '',
+        quantity: ing.quantity || '',
+        unit: ing.unit || '',
+        category: ing.category || 'Other'
+      })) : [],
       instructions: Array.isArray(mealData.instructions) ? mealData.instructions : [],
       nutritionalBenefits: Array.isArray(mealData.nutritionalBenefits) ? mealData.nutritionalBenefits : [],
       servings: typeof mealData.servings === 'number' ? mealData.servings : 1,
@@ -357,7 +376,7 @@ function processResponse(response: string): Omit<MealWithIngredients, 'id' | 'us
       protein: typeof mealData.protein === 'number' ? mealData.protein : 0,
       carbs: typeof mealData.carbs === 'number' ? mealData.carbs : 0,
       fat: typeof mealData.fat === 'number' ? mealData.fat : 0,
-      createdAt: new Date().toISOString() // Add this line
+      createdAt: new Date().toISOString()
     };
 
     return meal;
@@ -366,3 +385,9 @@ function processResponse(response: string): Omit<MealWithIngredients, 'id' | 'us
     throw error;
   }
 }
+
+
+/*
+Developer: Patrick Jakobsen
+Date: 10-10-2024
+*/

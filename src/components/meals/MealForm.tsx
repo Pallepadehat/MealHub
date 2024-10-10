@@ -7,40 +7,61 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Ingredient, MealWithIngredients, User } from '@/types'
 import { Plus, Minus, Save, Wand2, Loader2 } from 'lucide-react'
-import { saveMeal, generateMealWithAI } from '@/app/actions/meal-action'
+import { saveMeal, generateMealWithAI, updateMeal } from '@/app/actions/meal-action'
 import { toast } from 'react-hot-toast'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface MealFormProps {
   user: User;
+  initialMeal?: MealWithIngredients;
+  onClose?: () => void;
+  onUpdate?: (meal: MealWithIngredients) => void;
 }
 
-export default function MealForm({ user }: MealFormProps) {
+const ingredientCategories = [
+  "Produce", "Dairy", "Meat", "Seafood", "Bakery", "Pantry", "Frozen", "Beverages", "Spices", "Other"
+]
+
+function isMealWithIngredients(meal: any): meal is MealWithIngredients {
+  return (
+    meal &&
+    typeof meal === 'object' &&
+    'id' in meal &&
+    'userId' in meal &&
+    'name' in meal &&
+    'ingredients' in meal &&
+    Array.isArray(meal.ingredients)
+  )
+}
+
+export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isAIGenerating, setIsAIGenerating] = useState(false)
-  const [meal, setMeal] = useState<Omit<MealWithIngredients, 'id'>>({
+  const [meal, setMeal] = useState<MealWithIngredients>({
+    id: initialMeal?.id ?? '',
     userId: user.id,
-    name: '',
-    description: '',
-    ingredients: [],
-    instructions: [],
-    nutritionalBenefits: [],
-    mealType: 'breakfast',
-    servings: 1,
-    prepTime: 0,
-    cookTime: 0,
-    totalTime: 0,
-    calories: 0,
-    protein: 0,
-    carbs: 0,
-    fat: 0,
-    createdAt: new Date().toISOString(),
+    name: initialMeal?.name ?? '',
+    description: initialMeal?.description ?? '',
+    ingredients: initialMeal?.ingredients ?? [],
+    instructions: initialMeal?.instructions ?? [],
+    nutritionalBenefits: initialMeal?.nutritionalBenefits ?? [],
+    mealType: initialMeal?.mealType ?? 'breakfast',
+    servings: initialMeal?.servings ?? 1,
+    prepTime: initialMeal?.prepTime ?? 0,
+    cookTime: initialMeal?.cookTime ?? 0,
+    totalTime: initialMeal?.totalTime ?? 0,
+    calories: initialMeal?.calories ?? 0,
+    protein: initialMeal?.protein ?? 0,
+    carbs: initialMeal?.carbs ?? 0,
+    fat: initialMeal?.fat ?? 0,
+    createdAt: initialMeal?.createdAt ?? new Date().toISOString(),
   })
   const [aiPrompt, setAiPrompt] = useState('')
-  const [servings, setServings] = useState(1)
+  const [servings, setServings] = useState(initialMeal?.servings ?? 1)
 
   const router = useRouter()
 
@@ -61,7 +82,7 @@ export default function MealForm({ user }: MealFormProps) {
   const addIngredient = () => {
     setMeal(prev => ({
       ...prev,
-      ingredients: [...prev.ingredients, { id: '', meal_id: '', name: '', quantity: '', unit: '' }]
+      ingredients: [...prev.ingredients, { id: '', meal_id: '', name: '', quantity: '', unit: '', category: 'Other' }]
     }))
   }
 
@@ -97,12 +118,25 @@ export default function MealForm({ user }: MealFormProps) {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const result = await saveMeal(meal, user.id)
-      if (result.success) {
-        toast.success("Meal saved successfully")
-        router.push('/dashboard')
+      if (initialMeal) {
+        const result = await updateMeal(meal)
+        if (result.success && result.meal) {
+          toast.success("Meal updated successfully")
+          if (onUpdate && isMealWithIngredients(result.meal)) {
+            onUpdate(result.meal)
+          }
+          onClose && onClose()
+        } else {
+          throw new Error(result.error || "Failed to update meal")
+        }
       } else {
-        throw new Error(result.error)
+        const result = await saveMeal(meal, user.id)
+        if (result.success && result.meal) {
+          toast.success("Meal saved successfully")
+          router.push('/meals')
+        } else {
+          throw new Error(result.error || "Failed to save meal")
+        }
       }
     } catch (error) {
       console.error('Error saving meal:', error)
@@ -126,11 +160,11 @@ export default function MealForm({ user }: MealFormProps) {
           ...prev,
           ...result.meal,
           userId: user.id,
-          mealType: prev.mealType, // Preserve the selected meal type
+          mealType: prev.mealType,
         }))
         toast.success("AI-generated meal created! You can now edit and save it.")
       } else {
-        throw new Error(result.error)
+        throw new Error(result.error || "Failed to generate meal with AI")
       }
     } catch (error) {
       console.error('Error generating meal with AI:', error)
@@ -141,20 +175,17 @@ export default function MealForm({ user }: MealFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl mx-auto">
-      <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold text-blue-800">Create a New Meal</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <Card className="border-none shadow-none bg-transparent rounded-lg overflow-hidden">
+        <CardContent className="p-6">
           <Tabs defaultValue="manual" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="manual">Manual Entry</TabsTrigger>
               <TabsTrigger value="ai">AI Assistant</TabsTrigger>
             </TabsList>
             <TabsContent value="manual">
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="name" className="text-sm font-medium text-gray-700">Meal Name</Label>
                     <Input id="name" name="name" value={meal.name} onChange={handleInputChange} required className="mt-1" />
@@ -217,125 +248,159 @@ export default function MealForm({ user }: MealFormProps) {
               </div>
             </TabsContent>
           </Tabs>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-800">Ingredients</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {meal.ingredients.map((ing, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <Input placeholder="Name" value={ing.name} onChange={(e) => handleIngredientChange(index, 'name', e.target.value)} required />
-                <Input placeholder="Quantity" value={ing.quantity} onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)} required className="w-24" />
-                <Input placeholder="Unit" value={ing.unit} onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)} required className="w-24" />
-                <Button type="button" onClick={() => removeIngredient(index)} variant="outline" size="icon"><Minus className="h-4 w-4" /></Button>
+          <AnimatePresence>
+            <motion.div
+              key="meal-details"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="mt-8 space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Ingredients</h3>
+                  <div className="space-y-2">
+                    {meal.ingredients.map((ing, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex items-center space-x-2"
+                      >
+                        <Input placeholder="Name" value={ing.name} onChange={(e) => handleIngredientChange(index, 'name', e.target.value)} required />
+                        <Input placeholder="Quantity" value={ing.quantity} onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)} required className="w-24" />
+                        <Input placeholder="Unit" value={ing.unit} onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)} required className="w-24" />
+                        <Select value={ing.category} onValueChange={(value) => handleIngredientChange(index, 'category', value)}>
+                          <SelectTrigger className="w-36">
+                            <SelectValue placeholder="Category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ingredientCategories.map((category) => (
+                              <SelectItem key={category} value={category}>{category}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button type="button" onClick={() => removeIngredient(index)} variant="outline" size="icon"><Minus className="h-4 w-4" /></Button>
+                      </motion.div>
+                    ))}
+                    <Button type="button" onClick={addIngredient} variant="outline" className="w-full mt-2">
+                      <Plus className="h-4 w-4 mr-2" /> Add Ingredient
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg  font-semibold mb-2">Instructions</h3>
+                  <div className="space-y-2">
+                    {meal.instructions.map((instruction, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex items-center space-x-2"
+                      >
+                        <Input value={instruction} onChange={(e) => handleArrayChange(index, 'instructions', e.target.value)} required />
+                        <Button type="button" onClick={() => removeArrayItem(index, 'instructions')} variant="outline" size="icon"><Minus className="h-4 w-4" /></Button>
+                      </motion.div>
+                    ))}
+                    <Button type="button" onClick={() => addArrayItem('instructions')} variant="outline" className="w-full mt-2">
+                      <Plus className="h-4 w-4 mr-2" /> Add Instruction
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Nutritional Information</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="calories" className="text-sm font-medium text-gray-700">Calories</Label>
+                      <Input id="calories" name="calories" type="number" value={meal.calories} onChange={handleInputChange} required className="mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="protein" className="text-sm font-medium text-gray-700">Protein (g)</Label>
+                      <Input id="protein" name="protein" type="number" value={meal.protein} onChange={handleInputChange} required className="mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="carbs" className="text-sm font-medium text-gray-700">Carbs (g)</Label>
+                      <Input id="carbs" name="carbs" type="number" value={meal.carbs} onChange={handleInputChange} required className="mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="fat" className="text-sm font-medium text-gray-700">Fat (g)</Label>
+                      <Input id="fat" name="fat" type="number" value={meal.fat} onChange={handleInputChange} required className="mt-1" />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Preparation Time</h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="prepTime" className="text-sm font-medium text-gray-700">Prep Time (min)</Label>
+                      <Input id="prepTime" name="prepTime" type="number" value={meal.prepTime} onChange={handleInputChange} required className="mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="cookTime" className="text-sm font-medium text-gray-700">Cook Time (min)</Label>
+                      <Input id="cookTime" name="cookTime" type="number" value={meal.cookTime} onChange={handleInputChange} required className="mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="totalTime" className="text-sm font-medium text-gray-700">Total Time (min)</Label>
+                      <Input id="totalTime" name="totalTime" type="number" value={meal.totalTime} onChange={handleInputChange} required className="mt-1" />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Nutritional Benefits</h3>
+                  <div className="space-y-2">
+                    {meal.nutritionalBenefits.map((benefit, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex items-center space-x-2"
+                      >
+                        <Input value={benefit} onChange={(e) => handleArrayChange(index, 'nutritionalBenefits', e.target.value)} required />
+                        <Button type="button" onClick={() => removeArrayItem(index, 'nutritionalBenefits')} variant="outline" size="icon"><Minus className="h-4 w-4" /></Button>
+                      </motion.div>
+                    ))}
+                    <Button type="button" onClick={() => addArrayItem('nutritionalBenefits')} variant="outline" className="w-full mt-2">
+                      <Plus className="h-4 w-4 mr-2" /> Add Benefit
+                    </Button>
+                  </div>
+                </div>
               </div>
-            ))}
-            <Button type="button" onClick={addIngredient} variant="outline" className="w-full mt-2">
-              <Plus className="h-4 w-4 mr-2" /> Add Ingredient
+            </motion.div>
+          </AnimatePresence>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            <Button type="submit" className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white text-lg py-3 rounded-lg shadow-md transition-all duration-300" disabled={isLoading}>
+              {isLoading ? (
+                <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+              ) : (
+                <Save className="h-6 w-6 mr-2" />
+              )}
+              {initialMeal ? 'Update Meal' : 'Save Meal'}
             </Button>
-          </div>
+          </motion.div>
         </CardContent>
       </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-800">Instructions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {meal.instructions.map((instruction, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <Input value={instruction} onChange={(e) => handleArrayChange(index, 'instructions', e.target.value)} required />
-                <Button type="button" onClick={() => removeArrayItem(index, 'instructions')} variant="outline" size="icon"><Minus className="h-4 w-4" /></Button>
-              </div>
-            ))}
-            <Button type="button" onClick={() => addArrayItem('instructions')} variant="outline" className="w-full mt-2">
-              <Plus className="h-4 w-4 mr-2" /> Add Instruction
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-800">Nutritional Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="calories" className="text-sm font-medium text-gray-700">Calories</Label>
-              <Input id="calories" name="calories" type="number" value={meal.calories} onChange={handleInputChange} required className="mt-1" />
-            </div>
-            <div>
-              <Label htmlFor="protein" className="text-sm font-medium text-gray-700">Protein (g)</Label>
-              <Input id="protein" name="protein" type="number" value={meal.protein} onChange={handleInputChange} required className="mt-1" />
-            </div>
-            <div>
-              <Label htmlFor="carbs" className="text-sm font-medium text-gray-700">Carbs (g)</Label>
-              <Input id="carbs" name="carbs" type="number" value={meal.carbs} onChange={handleInputChange} required className="mt-1" />
-            </div>
-            <div>
-              <Label htmlFor="fat" className="text-sm font-medium text-gray-700">Fat (g)</Label>
-              <Input id="fat" name="fat" type="number" value={meal.fat} onChange={handleInputChange} required className="mt-1" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-800">Preparation Time</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="prepTime" className="text-sm font-medium text-gray-700">Prep Time (min)</Label>
-              <Input id="prepTime" name="prepTime" type="number" value={meal.prepTime} onChange={handleInputChange} required className="mt-1" />
-            </div>
-            <div>
-              <Label htmlFor="cookTime" className="text-sm font-medium text-gray-700">Cook Time (min)</Label>
-              <Input id="cookTime" name="cookTime" type="number" value={meal.cookTime} onChange={handleInputChange} required className="mt-1" />
-            </div>
-            <div>
-              <Label htmlFor="totalTime" className="text-sm font-medium text-gray-700">Total Time (min)</Label>
-              <Input id="totalTime" name="totalTime" type="number" value={meal.totalTime} onChange={handleInputChange} required className="mt-1" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-800">Nutritional Benefits</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {meal.nutritionalBenefits.map((benefit, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <Input value={benefit} onChange={(e) => handleArrayChange(index, 'nutritionalBenefits', e.target.value)} required />
-                <Button type="button" onClick={() => removeArrayItem(index, 'nutritionalBenefits')} variant="outline" size="icon"><Minus className="h-4 w-4" /></Button>
-              </div>
-            ))}
-            <Button type="button" onClick={() => addArrayItem('nutritionalBenefits')} variant="outline" className="w-full mt-2">
-              <Plus className="h-4 w-4 mr-2" /> Add Benefit
-            </Button>
-
-          </div>
-        </CardContent>
-      </Card>
-
-      <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white text-lg py-6" disabled={isLoading}>
-        {isLoading ? (
-          <Loader2 className="mr-2 h-6 w-6 animate-spin" />
-        ) : (
-          <Save className="h-6 w-6 mr-2" />
-        )}
-        Save Meal
-      </Button>
     </form>
   )
 }
+
+
+/*
+Developer: Patrick Jakobsen
+Date: 10-10-2024
+*/

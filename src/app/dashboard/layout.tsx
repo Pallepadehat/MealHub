@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/components/auth/AuthContext'
 import Sidebar from '@/components/layout/Sidebar'
+import { useEffect, useState } from 'react'
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth()
@@ -14,10 +15,19 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     return null // Or redirect to login page
   }
 
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
   return (
-    <div className="flex h-screen bg-gray-50">
+<div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <main className="flex-1 overflow-auto">
+      <main className={`flex-1 overflow-y-auto ${isMobile ? 'pt-20' : ''}`}>
         {children}
       </main>
     </div>
@@ -25,3 +35,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 }
 
 export default DashboardLayout
+
+
+/*
+Developer: Patrick Jakobsen
+Date: 10-10-2024
+*/

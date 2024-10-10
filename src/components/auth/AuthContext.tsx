@@ -130,3 +130,9 @@ export const useAuth = () => {
   }
   return context
 }
+
+
+/*
+Developer: Patrick Jakobsen
+Date: 10-10-2024
+*/

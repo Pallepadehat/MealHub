@@ -26,6 +26,7 @@ export interface User {
     name: string;
     quantity: string;
     unit: string;
+    category: string; // Add this line
   }
 
   export interface Meal {
@@ -44,23 +45,9 @@ export interface User {
     protein: number;
     carbs: number;
     fat: number;
-    createdAt: string; // Add this line
+    createdAt: string;
   }
-
-  export interface Ingredient {
-    id: string;
-    meal_id: string;
-    name: string;
-    quantity: string;
-    unit: string;
-  }
-
 
   export interface MealWithIngredients extends Meal {
     ingredients: Ingredient[];
   }
-
-  /*
-  Developer: Patrick Jakobsen
-  Date: 09-10-2024
-  */
