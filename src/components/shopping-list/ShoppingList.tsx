@@ -23,6 +23,7 @@ interface Ingredient {
   name: string
   quantity: string
   unit: string
+  category: string
 }
 
 interface ShoppingItem extends Ingredient {
@@ -43,7 +44,7 @@ export default function ShoppingList() {
   const [listItems, setListItems] = useState<ShoppingItem[]>([])
   const [newItem, setNewItem] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
-  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [suggestions, setSuggestions] = useState<Ingredient[]>([])
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null)
@@ -102,6 +103,7 @@ export default function ShoppingList() {
         name: doc.name,
         quantity: doc.quantity,
         unit: doc.unit,
+        category: doc.category,
         checked: doc.checked
       }))
       setListItems(items)
@@ -143,6 +145,7 @@ export default function ShoppingList() {
   const addItem = async () => {
     if (!newItem.trim() || !currentList) return
     try {
+      const selectedIngredient = suggestions.find(s => s.name === newItem)
       const response = await databases.createDocument(
         process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
         process.env.NEXT_PUBLIC_APPWRITE_SHOPPING_LIST_ITEMS_ID!,
@@ -152,7 +155,8 @@ export default function ShoppingList() {
           listId: currentList.id,
           name: newItem,
           quantity: '1',
-          unit: '',
+          unit: selectedIngredient?.unit || '',
+          category: selectedIngredient?.category || 'Other',
           checked: false
         }
       )
@@ -161,6 +165,7 @@ export default function ShoppingList() {
         name: response.name,
         quantity: response.quantity,
         unit: response.unit,
+        category: response.category,
         checked: response.checked
       }
       setListItems([...listItems, newItemObj])
@@ -249,7 +254,13 @@ export default function ShoppingList() {
         process.env.NEXT_PUBLIC_APPWRITE_INGREDIENTS_ID!,
         [Query.search('name', term)]
       )
-      setSuggestions(response.documents.map(doc => doc.name))
+      setSuggestions(response.documents.map(doc => ({
+        id: doc.$id,
+        name: doc.name,
+        quantity: '',
+        unit: doc.unit,
+        category: doc.category
+      })))
     } catch (error) {
       console.error('Error searching ingredients:', error)
     }
@@ -269,6 +280,7 @@ export default function ShoppingList() {
             name: item.name,
             quantity: item.quantity,
             unit: item.unit,
+            category: item.category,
             checked: false
           }
         )
@@ -292,7 +304,8 @@ export default function ShoppingList() {
         {
           name: updatedItem.name,
           quantity: updatedItem.quantity,
-          unit: updatedItem.unit
+          unit: updatedItem.unit,
+          category: updatedItem.category
         }
       )
       setListItems(listItems.map(item =>
@@ -331,6 +344,14 @@ export default function ShoppingList() {
     setIsEditingListName(false)
   }
 
+  const groupedItems = listItems.reduce((acc, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = []
+    }
+    acc[item.category].push(item)
+    return acc
+  }, {} as Record<string, ShoppingItem[]>)
+
   const activeLists = shoppingLists.filter(list => !list.isDone)
   const completedLists = shoppingLists.filter(list => list.isDone)
 
@@ -365,7 +386,7 @@ export default function ShoppingList() {
                 </Button>
                 <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" className="flex-grow">Import from Meal</Button>
+                    <Button variant="outline" className="flex-grow">Import from  Meal</Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
@@ -452,11 +473,11 @@ export default function ShoppingList() {
                                   variant="ghost"
                                   className="w-full justify-start"
                                   onClick={() => {
-                                    setNewItem(suggestion)
+                                    setNewItem(suggestion.name)
                                     setSuggestions([])
                                   }}
                                 >
-                                  {suggestion}
+                                  {suggestion.name}
                                 </Button>
                               ))}
                             </ScrollArea>
@@ -464,36 +485,41 @@ export default function ShoppingList() {
                         </Card>
                       )}
                       <ScrollArea className="h-[400px] pr-4">
-                        {listItems.map((item) => (
-                          <div key={item.id} className="flex items-center space-x-2 py-2 border-b">
-                            <Checkbox
-                              checked={item.checked}
-                              onCheckedChange={() => toggleItemCheck(item.id)}
-                              id={`item-${item.id}`}
-                            />
-                            <label
-                              htmlFor={`item-${item.id}`}
-                              className={`flex-grow ${item.checked ? 'line-through text-muted-foreground' : ''}`}
-                            >
-                              {item.name} {item.quantity && `(${item.quantity} ${item.unit})`}
-                            </label>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setEditingItem(item)
-                                setIsEditDialogOpen(true)
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => deleteItem(item.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                        {Object.entries(groupedItems).map(([category, items]) => (
+                          <div key={category} className="mb-4">
+                            <h3 className="text-lg font-semibold mb-2">{category}</h3>
+                            {items.map((item) => (
+                              <div key={item.id} className="flex items-center space-x-2 py-2 border-b">
+                                <Checkbox
+                                  checked={item.checked}
+                                  onCheckedChange={() => toggleItemCheck(item.id)}
+                                  id={`item-${item.id}`}
+                                />
+                                <label
+                                  htmlFor={`item-${item.id}`}
+                                  className={`flex-grow ${item.checked ? 'line-through text-muted-foreground' : ''}`}
+                                >
+                                  {item.name} {item.quantity && `(${item.quantity} ${item.unit})`}
+                                </label>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setEditingItem(item)
+                                    setIsEditDialogOpen(true)
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => deleteItem(item.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
                           </div>
                         ))}
                       </ScrollArea>

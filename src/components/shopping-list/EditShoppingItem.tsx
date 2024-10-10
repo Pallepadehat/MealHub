@@ -4,12 +4,14 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface ShoppingItem {
   id: string
   name: string
   quantity: string
   unit: string
+  category: string
   checked: boolean
 }
 
@@ -24,6 +26,10 @@ export default function EditShoppingItem({ item, onSave }: EditShoppingItemProps
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setEditedItem(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleCategoryChange = (value: string) => {
+    setEditedItem(prev => ({ ...prev, category: value }))
   }
 
   const handleSave = () => {
@@ -58,6 +64,24 @@ export default function EditShoppingItem({ item, onSave }: EditShoppingItemProps
           value={editedItem.unit}
           onChange={handleChange}
         />
+      </div>
+      <div>
+        <Label htmlFor="category">Category</Label>
+        <Select value={editedItem.category} onValueChange={handleCategoryChange}>
+          <SelectTrigger id="category">
+            <SelectValue placeholder="Select a category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Produce">Produce</SelectItem>
+            <SelectItem value="Dairy">Dairy</SelectItem>
+            <SelectItem value="Meat">Meat</SelectItem>
+            <SelectItem value="Bakery">Bakery</SelectItem>
+            <SelectItem value="Pantry">Pantry</SelectItem>
+            <SelectItem value="Frozen">Frozen</SelectItem>
+            <SelectItem value="Beverages">Beverages</SelectItem>
+            <SelectItem value="Other">Other</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <Button onClick={handleSave}>Save Changes</Button>
     </div>
