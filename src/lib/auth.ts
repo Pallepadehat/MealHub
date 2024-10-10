@@ -35,7 +35,7 @@ export const login = async (email: string, password: string): Promise<void> => {
 
 export const logout = async (): Promise<void> => {
   try {
-    await account.deleteSession('current')
+    await account.deleteSessions()
   } catch (error) {
     console.error('Error logging out:', error)
     throw error
@@ -116,8 +116,6 @@ export const deleteUser = async (): Promise<void> => {
 
     // Delete user document from the database
     await databases.deleteDocument(DATABASE_ID, USERS_COLLECTION_ID, user.id)
-
-    await account.deleteSessions()
 
     // Delete user account
     // await account.delete(user.id)
