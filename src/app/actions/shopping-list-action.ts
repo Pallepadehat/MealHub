@@ -3,6 +3,7 @@
 import { databases } from '@/lib/appwrite';
 import { ID, Query } from 'appwrite';
 
+// Define the structure for a shopping item
 export interface ShoppingItem {
   id: string;
   name: string;
@@ -11,6 +12,7 @@ export interface ShoppingItem {
   checked: boolean;
 }
 
+// Define the structure for a shopping list
 export interface ShoppingList {
   id: string;
   name: string;
@@ -18,8 +20,10 @@ export interface ShoppingList {
   createdAt: string;
 }
 
+// Function to retrieve the active shopping list for a user
 export async function getActiveShoppingList(userId: string): Promise<ShoppingList | null> {
   try {
+    // Query the database for the active shopping list
     const response = await databases.listDocuments(
       process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
       process.env.NEXT_PUBLIC_APPWRITE_SHOPPING_LISTS_ID!,
@@ -30,10 +34,12 @@ export async function getActiveShoppingList(userId: string): Promise<ShoppingLis
       ]
     );
 
+    // If no active list is found, return null
     if (response.documents.length === 0) {
       return null;
     }
 
+    // Extract and return the active list details
     const activeList = response.documents[0];
     return {
       id: activeList.$id,
@@ -47,6 +53,7 @@ export async function getActiveShoppingList(userId: string): Promise<ShoppingLis
   }
 }
 
+// Function to create a new shopping list
 export async function createShoppingList(userId: string, name: string): Promise<ShoppingList | null> {
   try {
     // First, set all existing lists to inactive
@@ -77,6 +84,7 @@ export async function createShoppingList(userId: string, name: string): Promise<
       }
     );
 
+    // Return the newly created shopping list
     return {
       id: response.$id,
       name: response.name,
@@ -89,13 +97,16 @@ export async function createShoppingList(userId: string, name: string): Promise<
   }
 }
 
+// Function to retrieve items from the active shopping list
 export async function getShoppingListItems(userId: string, limit?: number) {
   try {
+    // Get the active shopping list
     const activeList = await getActiveShoppingList(userId);
     if (!activeList) {
       return [];
     }
 
+    // Query the database for items in the active shopping list
     const response = await databases.listDocuments(
       process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
       process.env.NEXT_PUBLIC_APPWRITE_SHOPPING_LIST_ITEMS_ID!,
@@ -106,6 +117,7 @@ export async function getShoppingListItems(userId: string, limit?: number) {
       ]
     );
 
+    // Map the response to ShoppingItem objects
     return response.documents.map(doc => ({
       id: doc.$id,
       name: doc.name,
@@ -119,13 +131,16 @@ export async function getShoppingListItems(userId: string, limit?: number) {
   }
 }
 
+// Function to add a new item to the active shopping list
 export async function addShoppingItem(userId: string, item: Omit<ShoppingItem, 'id'>) {
   try {
+    // Get the active shopping list
     const activeList = await getActiveShoppingList(userId);
     if (!activeList) {
       throw new Error('No active shopping list found');
     }
 
+    // Create a new item in the database
     const response = await databases.createDocument(
       process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
       process.env.NEXT_PUBLIC_APPWRITE_SHOPPING_LIST_ITEMS_ID!,
@@ -136,6 +151,7 @@ export async function addShoppingItem(userId: string, item: Omit<ShoppingItem, '
       }
     );
 
+    // Return the newly created item
     return {
       success: true,
       item: {
@@ -151,7 +167,6 @@ export async function addShoppingItem(userId: string, item: Omit<ShoppingItem, '
     return { success: false, error: 'Failed to add item' };
   }
 }
-
 
 /*
 Developer: Patrick Jakobsen

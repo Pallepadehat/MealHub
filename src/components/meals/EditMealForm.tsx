@@ -15,26 +15,31 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Minus, Save, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
+// Props interface for the EditMealForm component
 interface EditMealFormProps {
   meal: MealWithIngredients;
   onClose: () => void;
   onUpdate: (updatedMeal: MealWithIngredients) => void;
 }
 
+// Array of ingredient categories
 const ingredientCategories = [
   "Produce", "Dairy", "Meat", "Seafood", "Bakery", "Pantry", "Frozen", "Beverages", "Spices", "Other"
 ]
 
+// EditMealForm component: Allows editing of meal details
 export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormProps) {
   const [editedMeal, setEditedMeal] = useState<MealWithIngredients>(meal)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
+  // Handle changes in input fields
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setEditedMeal(prev => ({ ...prev, [name]: value }))
   }
 
+  // Handle changes in ingredient fields
   const handleIngredientChange = (index: number, field: keyof Ingredient, value: string) => {
     setEditedMeal(prev => ({
       ...prev,
@@ -44,6 +49,7 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
     }))
   }
 
+  // Add a new ingredient to the meal
   const addIngredient = () => {
     setEditedMeal(prev => ({
       ...prev,
@@ -51,6 +57,7 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
     }))
   }
 
+  // Remove an ingredient from the meal
   const removeIngredient = (index: number) => {
     setEditedMeal(prev => ({
       ...prev,
@@ -58,6 +65,7 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
     }))
   }
 
+  // Handle changes in array fields (instructions and nutritionalBenefits)
   const handleArrayChange = (index: number, field: 'instructions' | 'nutritionalBenefits', value: string) => {
     setEditedMeal(prev => ({
       ...prev,
@@ -65,6 +73,7 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
     }))
   }
 
+  // Add a new item to an array field
   const addArrayItem = (field: 'instructions' | 'nutritionalBenefits') => {
     setEditedMeal(prev => ({
       ...prev,
@@ -72,6 +81,7 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
     }))
   }
 
+  // Remove an item from an array field
   const removeArrayItem = (index: number, field: 'instructions' | 'nutritionalBenefits') => {
     setEditedMeal(prev => ({
       ...prev,
@@ -79,6 +89,7 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
     }))
   }
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)

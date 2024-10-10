@@ -11,14 +11,20 @@ import { useAuth } from '@/components/auth/AuthContext'
 import { useChat } from 'ai/react'
 import { toast } from 'react-hot-toast'
 
+// MealChatInterface component: Renders the AI chat interface for meal planning assistance
 export default function MealChatInterface() {
+  // Ref for the scroll area to enable auto-scrolling
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  // Get the authenticated user from the AuthContext
   const { user } = useAuth()
 
+  // If no user is authenticated, don't render the component
   if (!user) return null
 
+  // Set up the chat functionality using the useChat hook
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: '/api/chat',
+    // Initialize the chat with a welcome message
     initialMessages: [
       {
         id: 'welcome',
@@ -26,14 +32,18 @@ export default function MealChatInterface() {
         content: "Hello! I'm MealBuddy, your friendly meal planning assistant. How can I help you today with meal ideas, recipes, or nutritional advice?",
       },
     ],
+    // Pass the user object to the API
     body: { user },
+    // Handle errors in the chat
     onError: (error) => {
       console.error('Error in chat:', error)
       toast.error('An error occurred. Please try again.')
     },
+    // Keep the last message if an error occurs
     keepLastMessageOnError: true,
   })
 
+  // Effect to auto-scroll to the bottom of the chat when new messages are added
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
@@ -115,3 +125,8 @@ export default function MealChatInterface() {
     </div>
   )
 }
+
+/*
+Developer: Patrick Jakobsen
+Date: 10-10-2024
+*/

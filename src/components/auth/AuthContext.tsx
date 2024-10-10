@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getCurrentUser, login, logout, signUp, saveOnboardingData, updateUser, deleteUser } from '@/lib/auth'
 import { User, OnboardingData } from '@/types'
 
+// Define the shape of the AuthContext
 interface AuthContextType {
   user: User | null
   loading: boolean
@@ -17,14 +18,18 @@ interface AuthContextType {
   deleteProfile: () => Promise<void>
 }
 
+// Create the AuthContext
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// AuthProvider component: Manages authentication state and provides auth functions
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  // State for user, loading status, and authentication status
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const router = useRouter()
 
+  // Effect to load the current user on component mount
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -42,6 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadUser()
   }, [])
 
+  // Handle user login
   const handleLogin = async (email: string, password: string) => {
     try {
       await login(email, password)
@@ -54,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Handle user logout
   const handleLogout = async () => {
     try {
       await logout()
@@ -66,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Handle user sign up
   const handleSignUp = async (email: string, password: string, name: string) => {
     try {
       await signUp(email, password, name)
@@ -76,6 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Handle saving onboarding data
   const handleSaveOnboarding = async (data: OnboardingData) => {
     try {
       await saveOnboardingData(data)
@@ -86,6 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Handle updating user profile
   const handleUpdateProfile = async (data: Partial<User>) => {
     try {
       await updateUser(data)
@@ -96,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Handle deleting user profile
   const handleDeleteProfile = async () => {
     try {
       await deleteUser()
@@ -108,6 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Create the context value object
   const value = {
     user,
     loading,
@@ -120,9 +132,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     deleteProfile: handleDeleteProfile,
   }
 
+  // Provide the authentication context to child components
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
+// Custom hook to use the AuthContext
 export const useAuth = () => {
   const context = useContext(AuthContext)
   if (context === undefined) {
@@ -130,7 +144,6 @@ export const useAuth = () => {
   }
   return context
 }
-
 
 /*
 Developer: Patrick Jakobsen

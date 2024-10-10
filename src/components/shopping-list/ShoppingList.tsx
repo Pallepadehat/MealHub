@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import ImportFromMeal from './ImportFromMeal'
 import EditShoppingItem from './EditShoppingItem'
 
+// Interface for the Ingredient structure
 interface Ingredient {
   id: string
   name: string
@@ -27,10 +28,12 @@ interface Ingredient {
   category: string
 }
 
+// Interface for the ShoppingItem structure, extending Ingredient
 interface ShoppingItem extends Ingredient {
   checked: boolean
 }
 
+// Interface for the ShoppingList structure
 interface ShoppingList {
   id: string
   name: string
@@ -38,6 +41,7 @@ interface ShoppingList {
   isDone: boolean
 }
 
+// ShoppingList component: Manages shopping lists and their items
 export default function ShoppingList() {
   const { user } = useAuth()
   const [shoppingLists, setShoppingLists] = useState<ShoppingList[]>([])
@@ -53,12 +57,14 @@ export default function ShoppingList() {
   const [isEditingListName, setIsEditingListName] = useState(false)
   const [editedListName, setEditedListName] = useState('')
 
+  // Fetch shopping lists when the component mounts or user changes
   useEffect(() => {
     if (user) {
       fetchShoppingLists()
     }
   }, [user])
 
+  // Fetch list items when the current list changes
   useEffect(() => {
     if (currentList) {
       fetchListItems(currentList.id)
@@ -66,6 +72,7 @@ export default function ShoppingList() {
     }
   }, [currentList])
 
+  // Fetch shopping lists from the database
   const fetchShoppingLists = async () => {
     try {
       const response = await databases.listDocuments(
@@ -92,6 +99,7 @@ export default function ShoppingList() {
     }
   }
 
+  // Fetch items for a specific shopping list
   const fetchListItems = async (listId: string) => {
     try {
       const response = await databases.listDocuments(
@@ -114,6 +122,7 @@ export default function ShoppingList() {
     }
   }
 
+  // Create a new shopping list
   const createNewList = async () => {
     try {
       const response = await databases.createDocument(
@@ -143,6 +152,7 @@ export default function ShoppingList() {
     }
   }
 
+  // Add a new item to the current shopping list
   const addItem = async () => {
     if (!newItem.trim() || !currentList) return
     try {
@@ -178,6 +188,7 @@ export default function ShoppingList() {
     }
   }
 
+  // Toggle the checked status of an item
   const toggleItemCheck = async (itemId: string) => {
     try {
       const item = listItems.find(item => item.id === itemId)
@@ -198,6 +209,7 @@ export default function ShoppingList() {
     }
   }
 
+  // Delete an item from the shopping list
   const deleteItem = async (itemId: string) => {
     try {
       await databases.deleteDocument(
@@ -213,6 +225,7 @@ export default function ShoppingList() {
     }
   }
 
+  // Toggle the completion status of a shopping list
   const toggleListCompletion = async (listId: string, isDone: boolean) => {
     try {
       await databases.updateDocument(
@@ -243,6 +256,7 @@ export default function ShoppingList() {
     }
   }
 
+  // Search for ingredients in the database
   const searchIngredients = async (term: string) => {
     setSearchTerm(term)
     if (term.length < 2) {
@@ -267,6 +281,7 @@ export default function ShoppingList() {
     }
   }
 
+  // Import items from a meal to the current shopping list
   const handleImport = async (items: Ingredient[]) => {
     if (!currentList || !user) return
     try {
@@ -296,6 +311,7 @@ export default function ShoppingList() {
     setIsImportDialogOpen(false)
   }
 
+  // Edit an existing shopping list item
   const handleEdit = async (updatedItem: ShoppingItem) => {
     try {
       await databases.updateDocument(
@@ -321,6 +337,7 @@ export default function ShoppingList() {
     setEditingItem(null)
   }
 
+  // Handle changes to the shopping list name
   const handleListNameChange = async () => {
     if (!currentList || editedListName.trim() === currentList.name) {
       setIsEditingListName(false)
@@ -345,6 +362,7 @@ export default function ShoppingList() {
     setIsEditingListName(false)
   }
 
+  // Group items by category
   const groupedItems = listItems.reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = []
@@ -359,7 +377,7 @@ export default function ShoppingList() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-4xl bg-white shadow-2xl rounded-3xl overflow-hidden">
-        <CardHeader className="text-center bg-gradient-to-r from-blue-600 to-indigo-600 p-8">
+        <CardHeader className="text-center bg-gradient-to-r from-blue-600  to-indigo-600 p-8">
           <div className="flex justify-center mb-6">
             <UtensilsCrossed size={64} className="text-white" />
           </div>
@@ -369,7 +387,6 @@ export default function ShoppingList() {
         <CardContent className="p-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
-
               <TabsTrigger value="active" className="text-lg">
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 Active Lists
@@ -643,3 +660,8 @@ export default function ShoppingList() {
     </div>
   )
 }
+
+/*
+Developer: Patrick Jakobsen
+Date: 10-10-2024
+*/

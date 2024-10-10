@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+// Interface for the shopping item structure
 interface ShoppingItem {
   id: string
   name: string
@@ -15,23 +16,29 @@ interface ShoppingItem {
   checked: boolean
 }
 
+// Props interface for the EditShoppingItem component
 interface EditShoppingItemProps {
   item: ShoppingItem
   onSave: (updatedItem: ShoppingItem) => void
 }
 
+// EditShoppingItem component: Allows editing of a shopping item
 export default function EditShoppingItem({ item, onSave }: EditShoppingItemProps) {
+  // State to hold the edited item
   const [editedItem, setEditedItem] = useState<ShoppingItem>(item)
 
+  // Handle changes in input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setEditedItem(prev => ({ ...prev, [name]: value }))
   }
 
+  // Handle changes in the category select field
   const handleCategoryChange = (value: string) => {
     setEditedItem(prev => ({ ...prev, category: value }))
   }
 
+  // Handle save action
   const handleSave = () => {
     onSave(editedItem)
   }
@@ -87,3 +94,8 @@ export default function EditShoppingItem({ item, onSave }: EditShoppingItemProps
     </div>
   )
 }
+
+/*
+Developer: Patrick Jakobsen
+Date: 10-10-2024
+*/

@@ -12,6 +12,7 @@ import { Query } from 'appwrite'
 import { toast } from 'react-hot-toast'
 import { Search } from 'lucide-react'
 
+// Interface for the ingredient structure
 interface Ingredient {
   id: string
   name: string
@@ -20,16 +21,19 @@ interface Ingredient {
   category: string
 }
 
+// Interface for the meal structure
 interface Meal {
   id: string
   name: string
   ingredients: Ingredient[]
 }
 
+// Props interface for the ImportFromMeal component
 interface ImportFromMealProps {
   onImport: (items: Ingredient[]) => void
 }
 
+// ImportFromMeal component: Allows importing ingredients from existing meals
 export default function ImportFromMeal({ onImport }: ImportFromMealProps) {
   const { user } = useAuth()
   const [meals, setMeals] = useState<Meal[]>([])
@@ -37,12 +41,14 @@ export default function ImportFromMeal({ onImport }: ImportFromMealProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [filteredMeals, setFilteredMeals] = useState<Meal[]>([])
 
+  // Fetch meals and ingredients when the component mounts or user changes
   useEffect(() => {
     if (user) {
       fetchMealsAndIngredients()
     }
   }, [user])
 
+  // Filter meals based on search term
   useEffect(() => {
     const lowercasedTerm = searchTerm.toLowerCase()
     const filtered = meals.filter(meal =>
@@ -52,6 +58,7 @@ export default function ImportFromMeal({ onImport }: ImportFromMealProps) {
     setFilteredMeals(filtered)
   }, [searchTerm, meals])
 
+  // Fetch meals and their ingredients from the database
   const fetchMealsAndIngredients = async () => {
     try {
       const mealsResponse = await databases.listDocuments(
@@ -87,6 +94,7 @@ export default function ImportFromMeal({ onImport }: ImportFromMealProps) {
     }
   }
 
+  // Toggle selection of an individual ingredient
   const toggleIngredient = (ingredient: Ingredient) => {
     setSelectedIngredients(prev =>
       prev.some(i => i.id === ingredient.id)
@@ -95,6 +103,7 @@ export default function ImportFromMeal({ onImport }: ImportFromMealProps) {
     )
   }
 
+  // Toggle selection of all ingredients in a meal
   const toggleAllInMeal = (meal: Meal) => {
     const allSelected = meal.ingredients.every(ingredient =>
       selectedIngredients.some(i => i.id === ingredient.id)
@@ -114,6 +123,7 @@ export default function ImportFromMeal({ onImport }: ImportFromMealProps) {
     }
   }
 
+  // Handle the import action
   const handleImport = () => {
     onImport(selectedIngredients)
   }
@@ -172,3 +182,8 @@ export default function ImportFromMeal({ onImport }: ImportFromMealProps) {
     </div>
   )
 }
+
+/*
+Developer: Patrick Jakobsen
+Date: 10-10-2024
+*/

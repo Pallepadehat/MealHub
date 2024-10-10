@@ -11,7 +11,9 @@ import { loginSchema, LoginFormData } from '@/lib/validations/auth'
 import { z } from 'zod'
 import { motion, AnimatePresence } from 'framer-motion'
 
+// LoginForm component: Handles user login functionality
 export default function LoginForm() {
+  // State for form data, errors, loading state, and server error
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
@@ -19,28 +21,37 @@ export default function LoginForm() {
   const [errors, setErrors] = useState<Partial<LoginFormData>>({})
   const [serverError, setServerError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  // Hooks for routing and authentication
   const router = useRouter()
   const { login } = useAuth()
 
+  // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
     setErrors(prev => ({ ...prev, [name]: '' }))
   }
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setServerError('')
     setIsLoading(true)
 
     try {
+      // Validate form data
       const validatedData = loginSchema.parse(formData)
+      // Attempt login
       await login(validatedData.email, validatedData.password)
+      // Redirect to dashboard on successful login
       router.push('/dashboard')
     } catch (err) {
+      // Handle different types of errors
       if (err instanceof Error) {
         setServerError(err.message)
       } else if (err instanceof z.ZodError) {
+        // Handle validation errors
         const fieldErrors: Partial<LoginFormData> = {}
         err.errors.forEach((error) => {
           if (error.path) {
@@ -62,6 +73,7 @@ export default function LoginForm() {
       animate={{ opacity: 1 }}
       transition={{ delay: 0.3, duration: 0.5 }}
     >
+      {/* Email input field */}
       <div>
         <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
           Email address
@@ -79,6 +91,7 @@ export default function LoginForm() {
           />
           <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         </div>
+        {/* Animated error message for email */}
         <AnimatePresence>
           {errors.email && (
             <motion.p
@@ -93,6 +106,7 @@ export default function LoginForm() {
         </AnimatePresence>
       </div>
 
+      {/* Password input field */}
       <div>
         <Label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
           Password
@@ -110,6 +124,7 @@ export default function LoginForm() {
           />
           <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         </div>
+        {/* Animated error message for password */}
         <AnimatePresence>
           {errors.password && (
             <motion.p
@@ -124,6 +139,7 @@ export default function LoginForm() {
         </AnimatePresence>
       </div>
 
+      {/* Animated server error message */}
       <AnimatePresence>
         {serverError && (
           <motion.div
@@ -138,6 +154,7 @@ export default function LoginForm() {
         )}
       </AnimatePresence>
 
+      {/* Submit button */}
       <Button
         type="submit"
         className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
@@ -151,7 +168,6 @@ export default function LoginForm() {
     </motion.form>
   )
 }
-
 
 /*
 Developer: Patrick Jakobsen

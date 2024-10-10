@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
 
+// MealPage component: Renders the meal planning page with list and creation functionality
 export default function MealPage() {
   const { user } = useAuth()
   const [meals, setMeals] = useState<MealWithIngredients[]>([])
@@ -20,12 +21,14 @@ export default function MealPage() {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
+  // Fetch meals when the component mounts or user changes
   useEffect(() => {
     if (user) {
       fetchMeals()
     }
   }, [user])
 
+  // Function to fetch meals from the server
   const fetchMeals = async () => {
     if (user) {
       setIsLoading(true)
@@ -41,6 +44,7 @@ export default function MealPage() {
     }
   }
 
+  // Function to handle meal deletion
   const handleDelete = async (mealId: string) => {
     if (confirm('Are you sure you want to delete this meal?')) {
       try {
@@ -58,16 +62,19 @@ export default function MealPage() {
     }
   }
 
+  // Function to handle meal update
   const handleUpdate = (updatedMeal: MealWithIngredients) => {
     setMeals(meals.map(meal => meal.id === updatedMeal.id ? updatedMeal : meal))
     handleCloseEditForm()
   }
 
+  // Function to close the edit form dialog
   const handleCloseEditForm = () => {
     setEditingMeal(null)
     setIsOpen(false)
   }
 
+  // If no user is authenticated, return null
   if (!user) {
     return null
   }

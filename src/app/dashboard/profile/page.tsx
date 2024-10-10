@@ -332,6 +332,6 @@ export default function ProfilePage() {
 
 
 /*
-Developer: Patrick Jakobsen & Mathias Seeger
+Developer: Mathias Holst Seeger
 Date: 10-10-2024
 */

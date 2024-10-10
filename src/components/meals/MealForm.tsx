@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 
+// Props interface for the MealForm component
 interface MealFormProps {
   user: User;
   initialMeal?: MealWithIngredients;
@@ -22,10 +23,12 @@ interface MealFormProps {
   onUpdate?: (meal: MealWithIngredients) => void;
 }
 
+// Array of ingredient categories
 const ingredientCategories = [
   "Produce", "Dairy", "Meat", "Seafood", "Bakery", "Pantry", "Frozen", "Beverages", "Spices", "Other"
 ]
 
+// Type guard to check if an object is of type MealWithIngredients
 function isMealWithIngredients(meal: any): meal is MealWithIngredients {
   return (
     meal &&
@@ -38,6 +41,7 @@ function isMealWithIngredients(meal: any): meal is MealWithIngredients {
   )
 }
 
+// MealForm component: Renders a form for creating or editing meals
 export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isAIGenerating, setIsAIGenerating] = useState(false)
@@ -65,11 +69,13 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
 
   const router = useRouter()
 
+  // Handle changes in input fields
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setMeal(prev => ({ ...prev, [name]: value }))
   }
 
+  // Handle changes in ingredient fields
   const handleIngredientChange = (index: number, field: keyof Ingredient, value: string) => {
     setMeal(prev => ({
       ...prev,
@@ -79,6 +85,7 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
     }))
   }
 
+  // Add a new ingredient to the meal
   const addIngredient = () => {
     setMeal(prev => ({
       ...prev,
@@ -86,6 +93,7 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
     }))
   }
 
+  // Remove an ingredient from the meal
   const removeIngredient = (index: number) => {
     setMeal(prev => ({
       ...prev,
@@ -93,6 +101,7 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
     }))
   }
 
+  // Handle changes in array fields (instructions and nutritionalBenefits)
   const handleArrayChange = (index: number, field: 'instructions' | 'nutritionalBenefits', value: string) => {
     setMeal(prev => ({
       ...prev,
@@ -100,6 +109,7 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
     }))
   }
 
+  // Add a new item to an array field
   const addArrayItem = (field: 'instructions' | 'nutritionalBenefits') => {
     setMeal(prev => ({
       ...prev,
@@ -107,6 +117,7 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
     }))
   }
 
+  // Remove an item from an array field
   const removeArrayItem = (index: number, field: 'instructions' | 'nutritionalBenefits') => {
     setMeal(prev => ({
       ...prev,
@@ -114,6 +125,7 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
     }))
   }
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -146,6 +158,7 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
     }
   }
 
+  // Handle AI-assisted meal generation
   const handleAIGenerate = async () => {
     if (!aiPrompt) {
       toast.error("Please enter a prompt for AI generation.")
@@ -310,6 +323,7 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
                     ))}
                     <Button type="button" onClick={() => addArrayItem('instructions')} variant="outline" className="w-full mt-2">
                       <Plus className="h-4 w-4 mr-2" /> Add Instruction
+
                     </Button>
                   </div>
                 </div>
@@ -398,7 +412,6 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
     </form>
   )
 }
-
 
 /*
 Developer: Patrick Jakobsen

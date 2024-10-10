@@ -6,8 +6,10 @@ import { Ingredient, Meal, MealWithIngredients, User } from '@/types';
 import { ollama } from 'ollama-ai-provider';
 import { streamText } from 'ai';
 
+// Function to save a new meal with ingredients
 export async function saveMeal(meal: Omit<MealWithIngredients, 'id'>, userId: string) {
   try {
+    // Prepare meal data for saving
     const mealToSave: Omit<Meal, 'id'> = {
       userId,
       name: meal.name,
@@ -26,6 +28,7 @@ export async function saveMeal(meal: Omit<MealWithIngredients, 'id'>, userId: st
       createdAt: new Date().toISOString(),
     };
 
+    // Save meal to database
     const savedMeal = await databases.createDocument(
       process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
       process.env.NEXT_PUBLIC_APPWRITE_MEALS_ID!,
@@ -33,7 +36,7 @@ export async function saveMeal(meal: Omit<MealWithIngredients, 'id'>, userId: st
       mealToSave
     );
 
-    // Save ingredients with category
+    // Save ingredients associated with the meal
     const ingredientPromises = meal.ingredients.map((ingredient) =>
       databases.createDocument(
         process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
@@ -58,8 +61,10 @@ export async function saveMeal(meal: Omit<MealWithIngredients, 'id'>, userId: st
   }
 }
 
+// Function to update an existing meal and its ingredients
 export async function updateMeal(meal: MealWithIngredients) {
   try {
+    // Update meal details
     const updatedMeal = await databases.updateDocument(
       process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
       process.env.NEXT_PUBLIC_APPWRITE_MEALS_ID!,
@@ -121,6 +126,7 @@ export async function updateMeal(meal: MealWithIngredients) {
   }
 }
 
+// Function to delete a meal and its associated ingredients
 export async function deleteMeal(mealId: string) {
   try {
     // Delete the meal
@@ -152,6 +158,7 @@ export async function deleteMeal(mealId: string) {
   }
 }
 
+// Function to retrieve meals for a user
 export async function getMeals(userId: string, limit?: number): Promise<MealWithIngredients[]> {
   try {
     const meals = await databases.listDocuments(
@@ -206,6 +213,7 @@ export async function getMeals(userId: string, limit?: number): Promise<MealWith
   }
 }
 
+// Function to retrieve a single meal with its ingredients
 export async function getMealWithIngredients(mealId: string): Promise<{ success: boolean, meal?: MealWithIngredients, error?: string }> {
   try {
     const meal = await databases.getDocument(
@@ -256,6 +264,7 @@ export async function getMealWithIngredients(mealId: string): Promise<{ success:
   }
 }
 
+// Function to generate a meal using AI
 export async function generateMealWithAI(prompt: string, servings: number, user: User) {
   const systemPrompt = `You are a professional chef and nutritionist. Create a detailed meal based on the following prompt and number of servings. The meal should adhere to the user's dietary restrictions and preferences. Provide the meal information in the following JSON format:
 
@@ -335,8 +344,7 @@ User dietary information:
   }
 }
 
-
-
+// Helper function to process the AI response
 function processResponse(response: string): Omit<MealWithIngredients, 'id' | 'userId'> {
   try {
     const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -370,7 +378,9 @@ function processResponse(response: string): Omit<MealWithIngredients, 'id' | 'us
       nutritionalBenefits: Array.isArray(mealData.nutritionalBenefits) ? mealData.nutritionalBenefits : [],
       servings: typeof mealData.servings === 'number' ? mealData.servings : 1,
       prepTime: typeof mealData.prepTime === 'number' ? mealData.prepTime : 0,
-      cookTime: typeof mealData.cookTime === 'number' ? mealData.cookTime : 0,
+      cookTime: typeof mealData.cookTime ===
+
+ 'number' ? mealData.cookTime : 0,
       totalTime: typeof mealData.totalTime === 'number' ? mealData.totalTime : 0,
       calories: typeof mealData.calories === 'number' ? mealData.calories : 0,
       protein: typeof mealData.protein === 'number' ? mealData.protein : 0,
@@ -385,7 +395,6 @@ function processResponse(response: string): Omit<MealWithIngredients, 'id' | 'us
     throw error;
   }
 }
-
 
 /*
 Developer: Patrick Jakobsen

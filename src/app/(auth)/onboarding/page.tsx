@@ -12,6 +12,7 @@ import { Slider } from "@/components/ui/slider"
 import { UtensilsCrossed, ArrowLeft, ArrowRight, X, Plus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
+// Define the steps for the onboarding process
 const steps = [
   { title: "Basic Information", icon: "👤" },
   { title: "Health Metrics", icon: "📏" },
@@ -19,6 +20,7 @@ const steps = [
   { title: "Allergies & Dislikes", icon: "🚫" },
 ]
 
+// Define dietary options for user selection
 const dietaryOptions = [
   { value: "omnivore", label: "Omnivore", icon: "🍖" },
   { value: "vegetarian", label: "Vegetarian", icon: "🥦" },
@@ -29,6 +31,7 @@ const dietaryOptions = [
 ]
 
 export default function OnboardingPage() {
+  // State management for current step and form data
   const [currentStep, setCurrentStep] = useState(0)
   const [formData, setFormData] = useState({
     age: 25,
@@ -43,10 +46,12 @@ export default function OnboardingPage() {
   const router = useRouter()
   const { saveOnboarding } = useAuth()
 
+  // Handle input changes for form fields
   const handleInputChange = (name: string, value: number | string) => {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
+  // Add allergy to the list
   const handleAddAllergy = () => {
     if (allergyInput.trim()) {
       setFormData(prev => ({
@@ -57,6 +62,7 @@ export default function OnboardingPage() {
     }
   }
 
+  // Add dislike to the list
   const handleAddDislike = () => {
     if (dislikeInput.trim()) {
       setFormData(prev => ({
@@ -67,6 +73,7 @@ export default function OnboardingPage() {
     }
   }
 
+  // Remove allergy from the list
   const handleRemoveAllergy = (index: number) => {
     setFormData(prev => ({
       ...prev,
@@ -74,6 +81,7 @@ export default function OnboardingPage() {
     }))
   }
 
+  // Remove dislike from the list
   const handleRemoveDislike = (index: number) => {
     setFormData(prev => ({
       ...prev,
@@ -81,6 +89,7 @@ export default function OnboardingPage() {
     }))
   }
 
+  // Handle next step or form submission
   const handleNext = async () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(prev => prev + 1)
@@ -95,12 +104,14 @@ export default function OnboardingPage() {
     }
   }
 
+  // Handle going back to previous step
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1)
     }
   }
 
+  // Render content for each step
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
@@ -330,13 +341,15 @@ export default function OnboardingPage() {
             onClick={handleNext}
             className="px-6 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            {currentStep === steps.length - 1 ? 'Finish' : 'Next'} <ArrowRight className="ml-2 h-5 w-5" />
+            {currentStep === steps.length - 1 ? 'Finish' : 'Next'}
+            <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </CardFooter>
       </Card>
     </div>
   )
 }
+
 /*
 Developer: Patrick Jakobsen
 Date: 10-10-2024

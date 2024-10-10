@@ -5,8 +5,10 @@ import { AuthProvider } from '@/components/auth/AuthContext'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
 
+// Load the Inter font with Latin subset
 const inter = Inter({ subsets: ['latin'] })
 
+// Define metadata for the application
 export const metadata: Metadata = {
   title: 'MealHub',
   description: 'Your personal meal planning assistant',
@@ -21,12 +23,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className}`}>
+        {/* Wrap the entire application with AuthProvider for authentication context */}
         <AuthProvider>
           <main className="">
+            {/* Render the child components */}
             {children}
+            {/* Add Toaster component for displaying toast notifications */}
             <Toaster />
           </main>
-         {/*  <Footer /> */}
         </AuthProvider>
       </body>
     </html>

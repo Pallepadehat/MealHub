@@ -1,11 +1,19 @@
 import { account, databases, DATABASE_ID, USERS_COLLECTION_ID, client } from './appwrite'
-import { ID, } from 'appwrite'
+import { ID } from 'appwrite'
 import { User, OnboardingData } from '@/types'
 
+/**
+ * Fetches the current user's data from Appwrite.
+ * @returns A Promise that resolves to a User object or null if no user is logged in.
+ */
 export const getCurrentUser = async (): Promise<User | null> => {
   try {
+    // Get the current user's account information
     const user = await account.get()
+    // Fetch additional user data from the database
     const userData = await databases.getDocument(DATABASE_ID, USERS_COLLECTION_ID, user.$id)
+
+    // Combine account and database information into a User object
     return {
       id: user.$id,
       name: user.name,
@@ -24,6 +32,12 @@ export const getCurrentUser = async (): Promise<User | null> => {
   }
 }
 
+/**
+ * Logs in a user with email and password.
+ * @param email The user's email address.
+ * @param password The user's password.
+ * @throws Will throw an error if login fails.
+ */
 export const login = async (email: string, password: string): Promise<void> => {
   try {
     await account.createEmailPasswordSession(email, password)
@@ -33,6 +47,10 @@ export const login = async (email: string, password: string): Promise<void> => {
   }
 }
 
+/**
+ * Logs out the current user by deleting all active sessions.
+ * @throws Will throw an error if logout fails.
+ */
 export const logout = async (): Promise<void> => {
   try {
     await account.deleteSessions()
@@ -42,9 +60,18 @@ export const logout = async (): Promise<void> => {
   }
 }
 
+/**
+ * Signs up a new user with email, password, and name.
+ * @param email The new user's email address.
+ * @param password The new user's password.
+ * @param name The new user's name.
+ * @throws Will throw an error if sign up fails.
+ */
 export const signUp = async (email: string, password: string, name: string): Promise<void> => {
   try {
+    // Create a new user account
     const user = await account.create(ID.unique(), email, password, name)
+    // Create a document in the users collection for the new user
     await databases.createDocument(DATABASE_ID, USERS_COLLECTION_ID, user.$id, {
       name,
       email,
@@ -56,11 +83,17 @@ export const signUp = async (email: string, password: string, name: string): Pro
   }
 }
 
+/**
+ * Saves onboarding data for the current user.
+ * @param data The onboarding data to save.
+ * @throws Will throw an error if saving fails or no user is logged in.
+ */
 export const saveOnboardingData = async (data: OnboardingData): Promise<void> => {
   try {
     const user = await getCurrentUser()
     if (!user) throw new Error('No user logged in')
 
+    // Update the user's document with onboarding data
     await databases.updateDocument(
       DATABASE_ID,
       USERS_COLLECTION_ID,
@@ -73,6 +106,11 @@ export const saveOnboardingData = async (data: OnboardingData): Promise<void> =>
   }
 }
 
+/**
+ * Updates the current user's information.
+ * @param data Partial User object containing the fields to update.
+ * @throws Will throw an error if update fails or no user is logged in.
+ */
 export const updateUser = async (data: Partial<User>): Promise<void> => {
   try {
     const user = await getCurrentUser()
@@ -107,8 +145,10 @@ export const updateUser = async (data: Partial<User>): Promise<void> => {
   }
 }
 
-
-
+/**
+ * Deletes the current user's account and associated data.
+ * @throws Will throw an error if deletion fails or no user is logged in.
+ */
 export const deleteUser = async (): Promise<void> => {
   try {
     const user = await getCurrentUser()
@@ -118,9 +158,16 @@ export const deleteUser = async (): Promise<void> => {
     await databases.deleteDocument(DATABASE_ID, USERS_COLLECTION_ID, user.id)
 
     // Delete user account
+    // Note: The following line is commented out. Uncomment if you want to delete the account as well.
     // await account.delete(user.id)
   } catch (error) {
     console.error('Error deleting user:', error)
     throw error
   }
 }
+
+
+/*
+Developer: Patrick Jakobsen
+Date: 10-10-2024
+*/

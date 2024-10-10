@@ -11,7 +11,9 @@ import { useState } from 'react'
 import { z } from 'zod'
 import { motion, AnimatePresence } from 'framer-motion'
 
+// SignUpForm component: Handles user registration functionality
 export function SignUpForm() {
+  // State for form data, errors, loading state, and server error
   const [formData, setFormData] = useState<SignupFormData>({
     name: '',
     email: '',
@@ -20,28 +22,37 @@ export function SignUpForm() {
   const [errors, setErrors] = useState<Partial<SignupFormData>>({})
   const [serverError, setServerError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  // Hooks for routing and authentication
   const router = useRouter()
   const { signUp } = useAuth()
 
+  // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
     setErrors(prev => ({ ...prev, [name]: '' }))
   }
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setServerError('')
     setIsLoading(true)
 
     try {
+      // Validate form data
       const validatedData = signupSchema.parse(formData)
+      // Attempt sign up
       await signUp(validatedData.email, validatedData.password, validatedData.name)
+      // Redirect to onboarding page on successful sign up
       router.push('/onboarding')
     } catch (err) {
+      // Handle different types of errors
       if (err instanceof Error) {
         setServerError(err.message)
       } else if (err instanceof z.ZodError) {
+        // Handle validation errors
         const fieldErrors: Partial<SignupFormData> = {}
         err.errors.forEach((error) => {
           if (error.path) {
@@ -63,6 +74,7 @@ export function SignUpForm() {
       animate={{ opacity: 1 }}
       transition={{ delay: 0.3, duration: 0.5 }}
     >
+      {/* Full name input field */}
       <div>
         <Label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
           Full name
@@ -80,6 +92,7 @@ export function SignUpForm() {
           />
           <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         </div>
+        {/* Animated error message for name */}
         <AnimatePresence>
           {errors.name && (
             <motion.p
@@ -94,6 +107,7 @@ export function SignUpForm() {
         </AnimatePresence>
       </div>
 
+      {/* Email input field */}
       <div>
         <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
           Email address
@@ -111,6 +125,7 @@ export function SignUpForm() {
           />
           <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         </div>
+        {/* Animated error message for email */}
         <AnimatePresence>
           {errors.email && (
             <motion.p
@@ -125,6 +140,7 @@ export function SignUpForm() {
         </AnimatePresence>
       </div>
 
+      {/* Password input field */}
       <div>
         <Label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
           Password
@@ -142,6 +158,7 @@ export function SignUpForm() {
           />
           <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         </div>
+        {/* Animated error message for password */}
         <AnimatePresence>
           {errors.password && (
             <motion.p
@@ -156,6 +173,7 @@ export function SignUpForm() {
         </AnimatePresence>
       </div>
 
+      {/* Animated server error message */}
       <AnimatePresence>
         {serverError && (
           <motion.div
@@ -170,6 +188,7 @@ export function SignUpForm() {
         )}
       </AnimatePresence>
 
+      {/* Submit button */}
       <Button
         type="submit"
         className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"

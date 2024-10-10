@@ -8,12 +8,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { UtensilsCrossed, ShoppingCart, BookOpen, User, LogOut, Wand2, Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
+// Sidebar component: Renders the sidebar navigation for the dashboard
 export default function Sidebar() {
+  // Get user and logout function from auth context
   const { user, logout } = useAuth()
   const router = useRouter()
+  // State for sidebar open/close and mobile view
   const [isOpen, setIsOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
+  // Effect to check and update mobile state on mount and window resize
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024)
     checkMobile()
@@ -21,10 +25,12 @@ export default function Sidebar() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
+  // If no user is authenticated, don't render the sidebar
   if (!user) return null
 
   const pathname = usePathname()
 
+  // Define menu items for the sidebar
   const menuItems = [
     { icon: Wand2, label: 'Ai Assistant', path: '/dashboard' },
     { icon: UtensilsCrossed, label: 'Meal Planning', path: '/dashboard/meal' },
@@ -32,6 +38,7 @@ export default function Sidebar() {
     { icon: User, label: 'Profile', path: '/dashboard/profile' },
   ]
 
+  // Animation variants for the sidebar
   const sidebarVariants = {
     open: { x: 0 },
     closed: { x: '-100%' },
@@ -39,6 +46,7 @@ export default function Sidebar() {
 
   return (
     <>
+      {/* Mobile menu toggle button */}
       <Button
         variant="ghost"
         size="icon"
@@ -49,6 +57,7 @@ export default function Sidebar() {
       </Button>
 
       <AnimatePresence>
+        {/* Render sidebar if it's open or not on mobile */}
         {(isOpen || !isMobile) && (
           <motion.div
             initial="closed"
@@ -60,10 +69,12 @@ export default function Sidebar() {
           >
             <div className="flex flex-col h-full">
               <div className="p-6">
+                {/* App logo and title */}
                 <h2 className="text-2xl font-bold text-blue-500 mb-6 flex items-center gap-2">
-                <UtensilsCrossed size={25} className="text-blue-500" />
+                  <UtensilsCrossed size={25} className="text-blue-500" />
                   MealHub
                 </h2>
+                {/* User profile section */}
                 <div className="flex items-center space-x-4 mb-8">
                   <Avatar className="h-12 w-12">
                     <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
@@ -73,6 +84,7 @@ export default function Sidebar() {
                     <p className="text-sm text-gray-500">{user.email}</p>
                   </div>
                 </div>
+                {/* Navigation menu */}
                 <nav className="space-y-2">
                   {menuItems.map((item, index) => (
                     <Button
@@ -90,6 +102,7 @@ export default function Sidebar() {
                   ))}
                 </nav>
               </div>
+              {/* Logout button */}
               <div className="mt-auto p-6">
                 <Button
                   variant="outline"
