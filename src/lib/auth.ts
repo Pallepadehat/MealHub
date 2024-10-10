@@ -118,7 +118,7 @@ export const deleteUser = async (): Promise<void> => {
     await databases.deleteDocument(DATABASE_ID, USERS_COLLECTION_ID, user.id)
 
     // Delete user account
-    await account.deleteIdentity(user.id)
+    // await account.delete(user.id)
   } catch (error) {
     console.error('Error deleting user:', error)
     throw error

@@ -1,12 +1,14 @@
 'use client'
 
 import React, { createContext, useState, useEffect, useContext } from 'react'
+import { useRouter } from 'next/navigation'
 import { getCurrentUser, login, logout, signUp, saveOnboardingData, updateUser, deleteUser } from '@/lib/auth'
 import { User, OnboardingData } from '@/types'
 
 interface AuthContextType {
   user: User | null
   loading: boolean
+  isAuthenticated: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   signUp: (email: string, password: string, name: string) => Promise<void>
@@ -20,14 +22,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     const loadUser = async () => {
       try {
         const currentUser = await getCurrentUser()
         setUser(currentUser)
+        setIsAuthenticated(!!currentUser)
       } catch (error) {
         console.error('Failed to load user:', error)
+        setUser(null)
+        setIsAuthenticated(false)
       } finally {
         setLoading(false)
       }
@@ -40,6 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await login(email, password)
       const currentUser = await getCurrentUser()
       setUser(currentUser)
+      setIsAuthenticated(true)
     } catch (error) {
       console.error('Login failed:', error)
       throw error
@@ -50,6 +58,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await logout()
       setUser(null)
+      setIsAuthenticated(false)
+      router.push('/login')
     } catch (error) {
       console.error('Logout failed:', error)
       throw error
@@ -90,6 +100,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await deleteUser()
       setUser(null)
+      setIsAuthenticated(false)
+      router.push('/login')
     } catch (error) {
       console.error('Failed to delete profile:', error)
       throw error
@@ -99,6 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = {
     user,
     loading,
+    isAuthenticated,
     login: handleLogin,
     logout: handleLogout,
     signUp: handleSignUp,
