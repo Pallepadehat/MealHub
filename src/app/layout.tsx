@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { AuthProvider } from '@/components/auth/AuthContext'
+// import Footer from '@/components/layout/Footer'
+import './globals.css'
 import { Toaster } from 'react-hot-toast'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -10,6 +12,7 @@ export const metadata: Metadata = {
   description: 'Your personal meal planning assistant',
 }
 
+// Root layout component
 export default function RootLayout({
   children,
 }: {
@@ -17,12 +20,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className}`}>
         <AuthProvider>
-          <main>
+          <main className="">
             {children}
             <Toaster />
           </main>
+         {/*  <Footer /> */}
         </AuthProvider>
       </body>
     </html>
