@@ -47,6 +47,15 @@ export interface User {
     createdAt: string; // Add this line
   }
 
+  export interface Ingredient {
+    id: string;
+    meal_id: string;
+    name: string;
+    quantity: string;
+    unit: string;
+  }
+
+
   export interface MealWithIngredients extends Meal {
     ingredients: Ingredient[];
   }

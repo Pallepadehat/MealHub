@@ -57,43 +57,145 @@ export async function saveMeal(meal: Omit<MealWithIngredients, 'id'>, userId: st
   }
 }
 
-export async function getMeals(userId: string, limit: number = 5): Promise<Meal[]> {
+
+export async function updateMeal(meal: MealWithIngredients) {
   try {
-    const response = await databases.listDocuments(
+    const updatedMeal = await databases.updateDocument(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+      process.env.NEXT_PUBLIC_APPWRITE_MEALS_ID!,
+      meal.id,
+      {
+        name: meal.name,
+        description: meal.description,
+        mealType: meal.mealType,
+        // ... other fields
+      }
+    );
+
+    // Delete existing ingredients
+    const existingIngredients = await databases.listDocuments(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+      process.env.NEXT_PUBLIC_APPWRITE_INGREDIENTS_ID!,
+      [Query.equal('meal_id', meal.id)]
+    );
+
+    for (const ingredient of existingIngredients.documents) {
+      await databases.deleteDocument(
+        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+        process.env.NEXT_PUBLIC_APPWRITE_INGREDIENTS_ID!,
+        ingredient.$id
+      );
+    }
+
+    // Create new ingredients
+    const ingredientPromises = meal.ingredients.map((ingredient) =>
+      databases.createDocument(
+        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+        process.env.NEXT_PUBLIC_APPWRITE_INGREDIENTS_ID!,
+        ID.unique(),
+        {
+          meal_id: meal.id,
+          name: ingredient.name,
+          quantity: ingredient.quantity,
+          unit: ingredient.unit
+        }
+      )
+    );
+
+    await Promise.all(ingredientPromises);
+
+    return { success: true, meal: updatedMeal };
+  } catch (error) {
+    console.error('Error updating meal:', error);
+    return { success: false, error: 'Failed to update meal' };
+  }
+}
+
+export async function deleteMeal(mealId: string) {
+  try {
+    // Delete the meal
+    await databases.deleteDocument(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+      process.env.NEXT_PUBLIC_APPWRITE_MEALS_ID!,
+      mealId
+    );
+
+    // Delete associated ingredients
+    const ingredientsToDelete = await databases.listDocuments(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+      process.env.NEXT_PUBLIC_APPWRITE_INGREDIENTS_ID!,
+      [Query.equal('meal_id', mealId)]
+    );
+
+    for (const ingredient of ingredientsToDelete.documents) {
+      await databases.deleteDocument(
+        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+        process.env.NEXT_PUBLIC_APPWRITE_INGREDIENTS_ID!,
+        ingredient.$id
+      );
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting meal:', error);
+    return { success: false, error: 'Failed to delete meal' };
+  }
+}
+
+
+export async function getMeals(userId: string, limit?: number): Promise<MealWithIngredients[]> {
+  try {
+    const meals = await databases.listDocuments(
       process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
       process.env.NEXT_PUBLIC_APPWRITE_MEALS_ID!,
       [
         Query.equal('userId', userId),
-        Query.orderDesc('$createdAt'),
-        Query.limit(limit)
+        ...(limit ? [Query.limit(limit)] : []),
       ]
     );
 
-    const meals = response.documents.map(doc => ({
-      id: doc.$id,
-      userId: doc.userId,
-      name: doc.name,
-      description: doc.description,
-      instructions: doc.instructions,
-      nutritionalBenefits: doc.nutritionalBenefits,
-      mealType: doc.mealType,
-      servings: doc.servings,
-      prepTime: doc.prepTime,
-      cookTime: doc.cookTime,
-      totalTime: doc.totalTime,
-      calories: doc.calories,
-      protein: doc.protein,
-      carbs: doc.carbs,
-      fat: doc.fat,
-      createdAt: doc.$createdAt // Use the Appwrite $createdAt field
+    const mealsWithIngredients = await Promise.all(meals.documents.map(async (meal) => {
+      const ingredients = await databases.listDocuments(
+        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+        process.env.NEXT_PUBLIC_APPWRITE_INGREDIENTS_ID!,
+        [Query.equal('meal_id', meal.$id)]
+      );
+
+      return {
+        id: meal.$id,
+        userId: meal.userId,
+        name: meal.name,
+        description: meal.description,
+        instructions: meal.instructions,
+        nutritionalBenefits: meal.nutritionalBenefits,
+        mealType: meal.mealType,
+        servings: meal.servings,
+        prepTime: meal.prepTime,
+        cookTime: meal.cookTime,
+        totalTime: meal.totalTime,
+        calories: meal.calories,
+        protein: meal.protein,
+        carbs: meal.carbs,
+        fat: meal.fat,
+        createdAt: meal.$createdAt,
+        updatedAt: meal.$updatedAt,
+        ingredients: ingredients.documents.map(ing => ({
+          id: ing.$id,
+          meal_id: ing.meal_id,
+          name: ing.name,
+          quantity: ing.quantity,
+          unit: ing.unit
+        } as Ingredient))
+      } as MealWithIngredients;
     }));
 
-    return meals;
+    return mealsWithIngredients;
   } catch (error) {
     console.error('Error fetching meals:', error);
-    throw new Error('Failed to fetch meals');
+    return [];
   }
 }
+
 
 export async function getMealWithIngredients(mealId: string): Promise<{ success: boolean, meal?: MealWithIngredients, error?: string }> {
   try {
