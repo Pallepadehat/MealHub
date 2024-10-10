@@ -9,10 +9,6 @@
 # testing
 /coverage
 
-# obsidian
-/.obsidian
-
-
 # next.js
 /.next/
 /out/

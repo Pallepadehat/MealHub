@@ -1,139 +1,80 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { SignUpForm } from "@/components/auth/SignUpForm"
+import { Card, CardContent } from "@/components/ui/card"
+import { UtensilsCrossed } from 'lucide-react'
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Apple, Loader2 } from 'lucide-react'
-import { useAuth } from "@/hooks/useAuth"
-import toast from "react-hot-toast"
+import { motion } from 'framer-motion'
 
-export default function SignupPage() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
-  const { register } = useAuth()
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match. Please make sure your passwords match.")
-      return
-    }
-    setIsLoading(true)
-    try {
-      await register(name, email, password)
-      toast.success("Account created successfully!")
-      router.push('/onboarding')
-    } catch (error) {
-      console.error("Signup failed", error)
-      toast.error("Signup failed. An error occurred during signup. Please try again.")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
+// SignUpPage component: Renders the sign-up page with animated elements
+export default function SignUpPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 to-blue-100 px-4 py-12 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md space-y-8">
-        <CardHeader>
-          <div className="flex flex-col items-center">
-            <Apple className="h-12 w-12 text-green-600" />
-            <CardTitle className="mt-6 text-center text-3xl font-extrabold text-gray-900">Join MealHub today</CardTitle>
-            <CardDescription className="mt-2 text-center text-sm text-gray-600">
-              Start planning your meals with ease
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <Label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full Name
-              </Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirm Password
-              </Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                className="mt-1"
-              />
-            </div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
+    // Main container with gradient background
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+      {/* Animated wrapper for the sign-up card */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
+      >
+        {/* Sign-up card with shadow and rounded corners */}
+        <Card className="bg-white shadow-2xl rounded-3xl overflow-hidden">
+          <CardContent className="flex flex-col items-center pt-12 pb-10 px-8">
+            {/* Animated icon container */}
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20 }}
+              className="mb-8 bg-blue-600 p-4 rounded-full"
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                "Create account"
-              )}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-600">
-            Already have an account?{" "}
-            <Link href="/login" className="font-medium text-green-600 hover:text-green-500">
-              Sign in
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
+              {/* MealHub icon */}
+              <UtensilsCrossed size={48} className="text-white" />
+            </motion.div>
+
+            {/* Animated heading */}
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="text-3xl font-bold text-gray-900 mb-2"
+            >
+              Join MealHub
+            </motion.h2>
+
+            {/* Animated subheading */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="text-gray-600 mb-8 text-center"
+            >
+              Create your account and start your culinary journey
+            </motion.p>
+
+            {/* Sign-up form component */}
+            <SignUpForm />
+
+            {/* Animated login link */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="mt-8 text-center text-sm text-gray-600"
+            >
+              Already have an account?{' '}
+              <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                Log in here
+              </Link>
+            </motion.p>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   )
 }
+
+/*
+Developer: Patrick Jakobsen
+Date: 10-10-2024
+*/
