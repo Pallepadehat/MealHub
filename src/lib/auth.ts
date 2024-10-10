@@ -1,5 +1,5 @@
-import { account, databases, DATABASE_ID, USERS_COLLECTION_ID } from './appwrite'
-import { ID } from 'appwrite'
+import { account, databases, DATABASE_ID, USERS_COLLECTION_ID, client } from './appwrite'
+import { ID, } from 'appwrite'
 import { User, OnboardingData } from '@/types'
 
 export const getCurrentUser = async (): Promise<User | null> => {
@@ -73,7 +73,54 @@ export const saveOnboardingData = async (data: OnboardingData): Promise<void> =>
   }
 }
 
-/*
-Developer: Patrick Jakobsen
-Date: 09-10-2024
-*/
+export const updateUser = async (data: Partial<User>): Promise<void> => {
+  try {
+    const user = await getCurrentUser()
+    if (!user) throw new Error('No user logged in')
+
+    const updateData: Partial<User> = {}
+
+    // Only include fields that are present in the database
+    if (data.name) updateData.name = data.name
+    if (data.age !== undefined) updateData.age = data.age
+    if (data.height !== undefined) updateData.height = data.height
+    if (data.weight !== undefined) updateData.weight = data.weight
+    if (data.diet) updateData.diet = data.diet
+    if (data.allergies) updateData.allergies = data.allergies
+    if (data.dislikes) updateData.dislikes = data.dislikes
+
+    // Update name in Appwrite account if it has changed
+    if (data.name && data.name !== user.name) {
+      await account.updateName(data.name)
+    }
+
+    // Update user data in the database
+    await databases.updateDocument(
+      DATABASE_ID,
+      USERS_COLLECTION_ID,
+      user.id,
+      updateData
+    )
+  } catch (error) {
+    console.error('Error updating user:', error)
+    throw error
+  }
+}
+
+
+
+export const deleteUser = async (): Promise<void> => {
+  try {
+    const user = await getCurrentUser()
+    if (!user) throw new Error('No user logged in')
+
+    // Delete user document from the database
+    await databases.deleteDocument(DATABASE_ID, USERS_COLLECTION_ID, user.id)
+
+    // Delete user account
+    await account.deleteIdentity(user.id)
+  } catch (error) {
+    console.error('Error deleting user:', error)
+    throw error
+  }
+}

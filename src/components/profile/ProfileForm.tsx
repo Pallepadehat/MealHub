@@ -1,15 +1,8 @@
-/*
-Developer: Mathias Holst Seeger
-Date: 09-10-2024
-Description:
-*/
-
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Edit, Trash2 } from "lucide-react"
-import { Client, Account } from 'appwrite'
-
+import { useAuth } from '@/components/auth/AuthContext'
 import { Button } from "@/components/ui/button"
 import {
     Card,
@@ -33,65 +26,55 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-
-const client = new Client()
-    .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || '')
-    .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '');
-
-const account = new Account(client);
+import { toast } from 'react-hot-toast'
+import { User } from '@/types'
 
 interface ProfileFormProps {
-    initialProfile: {
-        name: string;
-        email: string;
-        bio: string;
-    };
+    initialProfile: User;
 }
 
 const ProfileForm: React.FC<ProfileFormProps> = ({ initialProfile }) => {
-    const [name, setName] = useState(initialProfile.name)
-    const [email, setEmail] = useState(initialProfile.email)
-    const [bio, setBio] = useState(initialProfile.bio)
+    const { user, updateProfile, deleteProfile, logout } = useAuth()
+    const [profile, setProfile] = useState<User>(initialProfile)
     const [isChanged, setIsChanged] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+
+    useEffect(() => {
+        if (user) {
+            setProfile(user)
+        }
+    }, [user])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
         try {
-            await account.updateName(name)
-            await account.updatePrefs({ bio: bio })
+            await updateProfile(profile)
             setIsChanged(false)
-            console.log('Profile updated successfully')
+            toast.success('Profile updated successfully')
         } catch (error) {
             console.error('Error updating profile:', error)
+            toast.error('Failed to update profile')
         }
         setIsLoading(false)
     }
 
-    const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>) => (e: React.ChangeEvent<HTMLInputElement>) => {
-        setter(e.target.value)
+    const handleInputChange = (key: keyof User) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        setProfile(prev => ({ ...prev, [key]: e.target.value }))
         setIsChanged(true)
     }
 
     const handleDeleteProfile = async () => {
-        setIsLoading(true);
+        setIsLoading(true)
         try {
-            // Log out the user from all sessions
-            await account.deleteSessions();
-            console.log('User logged out from all sessions');
-
-            // Here, you would typically make a call to your backend API
-            // to actually delete the user's account from Appwrite
-            // For example:
-            // await fetch('/api/delete-account', { method: 'POST' });
-
-            console.log('Profile deletion process initiated');
-            // Redirect to home page or login page
-            window.location.href = '/';
+            await deleteProfile()
+            await logout()
+            toast.success('Profile deleted successfully')
+            window.location.href = '/'
         } catch (error) {
-            console.error('Error initiating profile deletion:', error);
-            setIsLoading(false);
+            console.error('Error deleting profile:', error)
+            toast.error('Failed to delete profile')
+            setIsLoading(false)
         }
     }
 
@@ -106,7 +89,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ initialProfile }) => {
                     <div className="flex items-center space-x-4">
                         <Avatar className="h-20 w-20">
                             <AvatarImage src="/placeholder-avatar.jpg" alt="Profile picture" />
-                            <AvatarFallback>{name.split(' ').map(n => n[0]).join('').toUpperCase()}</AvatarFallback>
+                            <AvatarFallback>{profile.name.split(' ').map(n => n[0]).join('').toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <Button type="button">Change Avatar</Button>
                     </div>
@@ -114,8 +97,8 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ initialProfile }) => {
                         <Label htmlFor="name">Name</Label>
                         <Input
                             id="name"
-                            value={name}
-                            onChange={handleInputChange(setName)}
+                            value={profile.name}
+                            onChange={handleInputChange('name')}
                         />
                     </div>
                     <div className="space-y-2">
@@ -123,23 +106,75 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ initialProfile }) => {
                         <Input
                             id="email"
                             type="email"
-                            value={email}
+                            value={profile.email}
                             readOnly
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="bio">Bio</Label>
+                        <Label htmlFor="age">Age</Label>
                         <Input
-                            id="bio"
-                            value={bio}
-                            onChange={handleInputChange(setBio)}
+                            id="age"
+                            type="number"
+                            value={profile.age || ''}
+                            onChange={handleInputChange('age')}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="height">Height (cm)</Label>
+                        <Input
+                            id="height"
+                            type="number"
+                            value={profile.height || ''}
+                            onChange={handleInputChange('height')}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="weight">Weight (kg)</Label>
+                        <Input
+                            id="weight"
+                            type="number"
+                            value={profile.weight || ''}
+                            onChange={handleInputChange('weight')}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="diet">Diet</Label>
+                        <Input
+                            id="diet"
+                            value={profile.diet || ''}
+                            onChange={handleInputChange('diet')}
+                        />
+                    </div>
+                    {/* Note: For allergies and dislikes, you might want to use a more complex input method,
+                        such as a multi-select or tags input. For simplicity, we're using a basic input here. */}
+                    <div className="space-y-2">
+                        <Label htmlFor="allergies">Allergies (comma-separated)</Label>
+                        <Input
+                            id="allergies"
+                            value={profile.allergies?.join(', ') || ''}
+                            onChange={(e) => {
+                                const allergies = e.target.value.split(',').map(item => item.trim())
+                                setProfile(prev => ({ ...prev, allergies }))
+                                setIsChanged(true)
+                            }}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="dislikes">Dislikes (comma-separated)</Label>
+                        <Input
+                            id="dislikes"
+                            value={profile.dislikes?.join(', ') || ''}
+                            onChange={(e) => {
+                                const dislikes = e.target.value.split(',').map(item => item.trim())
+                                setProfile(prev => ({ ...prev, dislikes }))
+                                setIsChanged(true)
+                            }}
                         />
                     </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
                     <Button type="button" variant="outline" onClick={() => {
-                        setName(initialProfile.name)
-                        setBio(initialProfile.bio)
+                        setProfile(initialProfile)
                         setIsChanged(false)
                     }}>
                         Cancel

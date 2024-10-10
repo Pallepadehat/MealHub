@@ -1,7 +1,7 @@
 import { Client, Account, Databases } from 'appwrite';
 import { config } from '@/config';
 
-const client = new Client()
+export const client = new Client()
     .setEndpoint(config.appwrite.endpoint)
     .setProject(config.appwrite.projectId);
 
