@@ -117,6 +117,8 @@ export const deleteUser = async (): Promise<void> => {
     // Delete user document from the database
     await databases.deleteDocument(DATABASE_ID, USERS_COLLECTION_ID, user.id)
 
+    await account.deleteSessions()
+
     // Delete user account
     // await account.delete(user.id)
   } catch (error) {
