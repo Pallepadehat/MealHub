@@ -362,12 +362,22 @@ export default function ShoppingList() {
     setIsEditingListName(false)
   }
 
-  // Group items by category
+  // Group items by category and combine duplicates
   const groupedItems = listItems.reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = []
     }
-    acc[item.category].push(item)
+    // Check if an item with the same name already exists in this category
+    const existingItem = acc[item.category].find(i => i.name === item.name)
+    if (existingItem) {
+      // If it exists, update the quantity
+      existingItem.quantity = (parseFloat(existingItem.quantity) + parseFloat(item.quantity)).toString()
+      // Merge the checked status (if any item is checked, the merged item is checked)
+      existingItem.checked = existingItem.checked || item.checked
+    } else {
+      // If it doesn't exist, add the new item
+      acc[item.category].push({ ...item })
+    }
     return acc
   }, {} as Record<string, ShoppingItem[]>)
 
@@ -378,7 +388,7 @@ export default function ShoppingList() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-4xl bg-white shadow-2xl rounded-3xl overflow-hidden">
         <CardHeader className="text-center bg-gradient-to-r from-blue-600  to-indigo-600 p-8">
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center  mb-6">
             <UtensilsCrossed size={64} className="text-white" />
           </div>
           <CardTitle className="text-4xl font-bold text-white mb-2">MealHub Shopping Lists</CardTitle>
