@@ -123,9 +123,6 @@ export default function MealPage() {
                     <UtensilsCrossed className="mx-auto h-16 w-16 text-gray-400 mb-4" />
                     <h3 className="text-2xl font-semibold mb-2 text-gray-700">No meals found</h3>
                     <p className="text-lg mb-4">Create your first meal to get started!</p>
-                    <Button>
-                      <Plus className="mr-2 h-4 w-4" /> Create a Meal
-                    </Button>
                   </motion.div>
                 ) : (
                   <AnimatePresence>

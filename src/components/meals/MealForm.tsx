@@ -72,7 +72,10 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
   // Handle changes in input fields
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setMeal(prev => ({ ...prev, [name]: value }))
+    setMeal(prev => ({
+      ...prev,
+      [name]: name === 'name' || name === 'description' ? value : Number(value)
+    }))
   }
 
   // Handle changes in ingredient fields
@@ -323,12 +326,12 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
                     ))}
                     <Button type="button" onClick={() => addArrayItem('instructions')} variant="outline" className="w-full mt-2">
                       <Plus className="h-4 w-4 mr-2" /> Add Instruction
-
                     </Button>
                   </div>
                 </div>
 
                 <div>
+
                   <h3 className="text-lg font-semibold mb-2">Nutritional Information</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
