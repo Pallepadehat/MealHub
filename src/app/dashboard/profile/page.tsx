@@ -400,8 +400,3 @@ export default function ProfilePage() {
 Developer: Mathias Holst Seeger
 Date: 10-11-2024
 */
-
-/*
-Developer: Mathias Holst Seeger
-Date: 10-10-2024
-*/
