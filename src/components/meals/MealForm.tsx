@@ -256,7 +256,7 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
                   </Button>
                 </div>
                 <p className="text-sm text-gray-600">
-                  Let Mealbuddy light up your meal with its AI-powered meal generation. Describe the meal you want, and Mealbuddy will create a recipe for you.
+                  Let Mealbuddy Light make you a meal with its AI-powered meal generation. Describe the meal you want, and Mealbuddy will create a recipe for you.
                 </p>
               </div>
             </TabsContent>

@@ -10,6 +10,8 @@ import { Bot, Send, User, Loader2 } from 'lucide-react'
 import { useAuth } from '@/components/auth/AuthContext'
 import { useChat } from 'ai/react'
 import { toast } from 'react-hot-toast'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 // MealChatInterface component: Renders the AI chat interface for meal planning assistance
 export default function MealChatInterface() {
@@ -87,7 +89,34 @@ export default function MealChatInterface() {
                         : 'bg-gray-200 text-gray-800'
                     }`}
                   >
-                    <p className="whitespace-pre-wrap">{message.content}</p>
+                    {message.role === 'assistant' ? (
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          code({node, className, children, ...props}) {
+                            return (
+                              <code className={`${className} bg-gray-100 rounded px-1`} {...props}>
+                                {children}
+                              </code>
+                            )
+                          },
+                          // Add custom styling for other markdown elements
+                          h1: ({node, ...props}) => <h1 className="text-2xl font-bold mb-2" {...props} />,
+                          h2: ({node, ...props}) => <h2 className="text-xl font-bold mb-2" {...props} />,
+                          h3: ({node, ...props}) => <h3 className="text-lg font-bold mb-2" {...props} />,
+                          ul: ({node, ...props}) => <ul className="list-disc list-inside mb-2" {...props} />,
+                          ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-2" {...props} />,
+                          li: ({node, ...props}) => <li className="mb-1" {...props} />,
+                          p: ({node, ...props}) => <p className="mb-2" {...props} />,
+                          a: ({node, ...props}) => <a className="text-blue-600 hover:underline" {...props} />,
+                          blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic" {...props} />,
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    ) : (
+                      <p className="whitespace-pre-wrap">{message.content}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -128,5 +157,5 @@ export default function MealChatInterface() {
 
 /*
 Developer: Patrick Jakobsen
-Date: 10-10-2024
+Date: 10-11-2024
 */
