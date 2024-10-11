@@ -145,7 +145,7 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
         const result = await saveMeal(meal, user.id)
         if (result.success && result.meal) {
           toast.success("Meal saved successfully")
-          router.push('/meals')
+          router.push('/dashboard/meal')
         } else {
           throw new Error(result.error || "Failed to save meal")
         }
@@ -256,7 +256,7 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
                   </Button>
                 </div>
                 <p className="text-sm text-gray-600">
-                  Let our AI assistant create a meal based on your description and preferences.
+                  Let Mealbuddy light up your meal with its AI-powered meal generation. Describe the meal you want, and Mealbuddy will create a recipe for you.
                 </p>
               </div>
             </TabsContent>

@@ -3,7 +3,7 @@
 import { databases } from '@/lib/appwrite';
 import { ID, Query, Models } from 'appwrite';
 import { Ingredient, Meal, MealWithIngredients, User } from '@/types';
-import { ollama } from 'ollama-ai-provider';
+import { createOllama } from 'ollama-ai-provider';
 import { streamText } from 'ai';
 
 // Function to save a new meal with ingredients
@@ -27,6 +27,8 @@ export async function saveMeal(meal: Omit<MealWithIngredients, 'id'>, userId: st
       fat: meal.fat,
       createdAt: new Date().toISOString(),
     };
+
+
 
     // Save meal to database
     const savedMeal = await databases.createDocument(
@@ -304,6 +306,11 @@ User dietary information:
 - Weight: ${user.weight || 'Not specified'} kg`;
 
   const userPrompt = `Create a meal for ${servings} serving(s) based on: ${prompt}`;
+
+  const ollama = createOllama({
+    baseURL: process.env.NEXT_PUBLIC_OLLAMA_ENDPOINT!,
+})
+
 
   try {
     console.log('Starting AI meal generation...');
