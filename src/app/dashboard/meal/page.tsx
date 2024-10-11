@@ -3,32 +3,29 @@
 import { deleteMeal, getMeals } from '@/app/actions/meal-action'
 import { useAuth } from '@/components/auth/AuthContext'
 import MealForm from '@/components/meals/MealForm'
+import EditMealForm from '@/components/meals/EditMealForm'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MealWithIngredients } from '@/types'
-import { Calendar, Edit, Trash2, UtensilsCrossed, Plus, Loader2 } from 'lucide-react'
+import { Calendar, Edit, Trash2, UtensilsCrossed, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
 
-// MealPage component: Renders the meal planning page with list and creation functionality
 export default function MealPage() {
   const { user } = useAuth()
   const [meals, setMeals] = useState<MealWithIngredients[]>([])
   const [editingMeal, setEditingMeal] = useState<MealWithIngredients | null>(null)
-  const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Fetch meals when the component mounts or user changes
   useEffect(() => {
     if (user) {
       fetchMeals()
     }
   }, [user])
 
-  // Function to fetch meals from the server
   const fetchMeals = async () => {
     if (user) {
       setIsLoading(true)
@@ -44,7 +41,6 @@ export default function MealPage() {
     }
   }
 
-  // Function to handle meal deletion
   const handleDelete = async (mealId: string) => {
     if (confirm('Are you sure you want to delete this meal?')) {
       try {
@@ -62,19 +58,15 @@ export default function MealPage() {
     }
   }
 
-  // Function to handle meal update
   const handleUpdate = (updatedMeal: MealWithIngredients) => {
     setMeals(meals.map(meal => meal.id === updatedMeal.id ? updatedMeal : meal))
     handleCloseEditForm()
   }
 
-  // Function to close the edit form dialog
   const handleCloseEditForm = () => {
     setEditingMeal(null)
-    setIsOpen(false)
   }
 
-  // If no user is authenticated, return null
   if (!user) {
     return null
   }
@@ -140,36 +132,16 @@ export default function MealPage() {
                           <div className="p-6">
                             <h3 className="font-semibold text-xl text-gray-800 mb-2">{meal.name}</h3>
                             <p className="text-gray-600 mb-4">{meal.description}</p>
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm text-gray-500 flex items-center">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                              <span className="text-sm text-gray-500 flex items-center mb-2 sm:mb-0">
                                 <Calendar className="mr-2 h-4 w-4" />
                                 {new Date(meal.createdAt).toLocaleDateString()}
                               </span>
                               <div className="flex items-center space-x-2">
-                                <Dialog open={isOpen && editingMeal?.id === meal.id} onOpenChange={(open) => {
-                                  setIsOpen(open)
-                                  if (!open) setEditingMeal(null)
-                                }}>
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm" onClick={() => {
-                                      setEditingMeal(meal)
-                                      setIsOpen(true)
-                                    }}>
-                                      <Edit className="h-4 w-4 mr-1" />
-                                      Edit
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="sm:max-w-[425px]">
-                                    {editingMeal && (
-                                      <MealForm
-                                        user={user}
-                                        initialMeal={editingMeal}
-                                        onClose={handleCloseEditForm}
-                                        onUpdate={handleUpdate}
-                                      />
-                                    )}
-                                  </DialogContent>
-                                </Dialog>
+                                <Button variant="outline" size="sm" onClick={() => setEditingMeal(meal)}>
+                                  <Edit className="h-4 w-4 mr-1" />
+                                  Edit
+                                </Button>
                                 <Button variant="outline" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => handleDelete(meal.id)}>
                                   <Trash2 className="h-4 w-4 mr-1" />
                                   Delete
@@ -189,17 +161,28 @@ export default function MealPage() {
             </Tabs>
           </CardContent>
           <CardFooter className="bg-gray-50 p-6">
-          <p className="text-sm text-gray-500 text-center w-full">
-            MealHub - Your personal meal planning assistant
-          </p>
-        </CardFooter>
+            <p className="text-sm text-gray-500 text-center w-full">
+              MealHub - Your personal meal planning assistant
+            </p>
+          </CardFooter>
         </Card>
       </motion.div>
+      <Dialog open={!!editingMeal} onOpenChange={(open) => !open && handleCloseEditForm()}>
+        <DialogContent className="w-[90vw] max-w-[800px] h-[90vh] max-h-[800px] overflow-y-auto p-4 sm:p-6">
+          {editingMeal && (
+            <EditMealForm
+              meal={editingMeal}
+              onClose={handleCloseEditForm}
+              onUpdate={handleUpdate}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
 
 /*
 Developer: Patrick Jakobsen
-Date: 10-10-2024
+Date: 11-10-2024
 */

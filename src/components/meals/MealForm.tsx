@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Ingredient, MealWithIngredients, User } from '@/types'
-import { Plus, Minus, Save, Wand2, Loader2 } from 'lucide-react'
+import { Plus, Minus, Save, Wand2, Loader2, Search } from 'lucide-react'
 import { saveMeal, generateMealWithAI, updateMeal } from '@/app/actions/meal-action'
 import { toast } from 'react-hot-toast'
 import { Card, CardContent } from "@/components/ui/card"
@@ -66,6 +66,7 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
   })
   const [aiPrompt, setAiPrompt] = useState('')
   const [servings, setServings] = useState(initialMeal?.servings ?? 1)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const router = useRouter()
 
@@ -190,6 +191,10 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
     }
   }
 
+  const filteredIngredients = meal.ingredients.filter(ing =>
+    ing.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <Card className="border-none shadow-none bg-transparent rounded-lg overflow-hidden">
@@ -276,32 +281,57 @@ export default function MealForm({ user, initialMeal, onClose, onUpdate }: MealF
               <div className="mt-8 space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Ingredients</h3>
-                  <div className="space-y-2">
-                    {meal.ingredients.map((ing, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex items-center space-x-2"
-                      >
-                        <Input placeholder="Name" value={ing.name} onChange={(e) => handleIngredientChange(index, 'name', e.target.value)} required />
-                        <Input placeholder="Quantity" value={ing.quantity} onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)} required className="w-24" />
-                        <Input placeholder="Unit" value={ing.unit} onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)} required className="w-24" />
-                        <Select value={ing.category} onValueChange={(value) => handleIngredientChange(index, 'category', value)}>
-                          <SelectTrigger className="w-36">
-                            <SelectValue placeholder="Category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {ingredientCategories.map((category) => (
-                              <SelectItem key={category} value={category}>{category}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button type="button" onClick={() => removeIngredient(index)} variant="outline" size="icon"><Minus className="h-4 w-4" /></Button>
-                      </motion.div>
-                    ))}
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <Search className="text-gray-400" />
+                      <Input
+                        placeholder="Search ingredients..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="flex-grow"
+                      />
+                    </div>
+                    <AnimatePresence>
+                      {filteredIngredients.map((ing, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                          className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mt-2"
+                        >
+                          <Input placeholder="Name" value={ing.name} onChange={(e) => handleIngredientChange(index, 'name', e.target.value)} required className="w-full sm:w-1/3" />
+                          <Input placeholder="Quantity" value={ing.quantity} onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)} required className="w-full sm:w-24" />
+                          <Select value={ing.unit} onValueChange={(value) => handleIngredientChange(index, 'unit', value)}>
+                            <SelectTrigger className="w-full sm:w-24">
+                              <SelectValue placeholder="Unit" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="g">Grams (g)</SelectItem>
+                              <SelectItem value="kg">Kilograms (kg)</SelectItem>
+                              <SelectItem value="ml">Milliliters (ml)</SelectItem>
+                              <SelectItem value="l">Liters (l)</SelectItem>
+                              <SelectItem value="tsp">Teaspoon (tsp)</SelectItem>
+                              <SelectItem value="tbsp">Tablespoon (tbsp)</SelectItem>
+                              <SelectItem value="cup">Cup</SelectItem>
+                              <SelectItem value="piece">Piece</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Select value={ing.category} onValueChange={(value) => handleIngredientChange(index, 'category', value)}>
+                            <SelectTrigger className="w-full sm:w-36">
+                              <SelectValue placeholder="Category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ingredientCategories.map((category) => (
+                                <SelectItem key={category} value={category}>{category}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button type="button" onClick={() => removeIngredient(index)} variant="outline" size="icon" className="mt-2 sm:mt-0"><Minus className="h-4 w-4" /></Button>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
                     <Button type="button" onClick={addIngredient} variant="outline" className="w-full mt-2">
                       <Plus className="h-4 w-4 mr-2" /> Add Ingredient
                     </Button>

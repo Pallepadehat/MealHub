@@ -15,31 +15,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Minus, Save, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-// Props interface for the EditMealForm component
 interface EditMealFormProps {
   meal: MealWithIngredients;
   onClose: () => void;
   onUpdate: (updatedMeal: MealWithIngredients) => void;
 }
 
-// Array of ingredient categories
 const ingredientCategories = [
   "Produce", "Dairy", "Meat", "Seafood", "Bakery", "Pantry", "Frozen", "Beverages", "Spices", "Other"
 ]
 
-// EditMealForm component: Allows editing of meal details
+const unitOptions = [
+  "g", "kg", "ml", "l", "tsp", "tbsp", "cup", "oz", "lb", "piece", "slice", "pinch"
+]
+
 export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormProps) {
   const [editedMeal, setEditedMeal] = useState<MealWithIngredients>(meal)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  // Handle changes in input fields
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setEditedMeal(prev => ({ ...prev, [name]: value }))
+    setEditedMeal(prev => ({ ...prev, [name]: name === 'name' || name === 'description' ? value : Number(value) }))
   }
 
-  // Handle changes in ingredient fields
   const handleIngredientChange = (index: number, field: keyof Ingredient, value: string) => {
     setEditedMeal(prev => ({
       ...prev,
@@ -49,7 +48,6 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
     }))
   }
 
-  // Add a new ingredient to the meal
   const addIngredient = () => {
     setEditedMeal(prev => ({
       ...prev,
@@ -57,7 +55,6 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
     }))
   }
 
-  // Remove an ingredient from the meal
   const removeIngredient = (index: number) => {
     setEditedMeal(prev => ({
       ...prev,
@@ -65,7 +62,6 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
     }))
   }
 
-  // Handle changes in array fields (instructions and nutritionalBenefits)
   const handleArrayChange = (index: number, field: 'instructions' | 'nutritionalBenefits', value: string) => {
     setEditedMeal(prev => ({
       ...prev,
@@ -73,7 +69,6 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
     }))
   }
 
-  // Add a new item to an array field
   const addArrayItem = (field: 'instructions' | 'nutritionalBenefits') => {
     setEditedMeal(prev => ({
       ...prev,
@@ -81,7 +76,6 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
     }))
   }
 
-  // Remove an item from an array field
   const removeArrayItem = (index: number, field: 'instructions' | 'nutritionalBenefits') => {
     setEditedMeal(prev => ({
       ...prev,
@@ -89,7 +83,6 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
     }))
   }
 
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -118,7 +111,7 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-8">
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
               <TabsTrigger value="basic">Basic Info</TabsTrigger>
               <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
               <TabsTrigger value="instructions">Instructions</TabsTrigger>
@@ -147,7 +140,7 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="servings">Servings</Label>
                   <Input id="servings" name="servings" type="number" value={editedMeal.servings} onChange={handleInputChange} required />
@@ -177,13 +170,22 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.2 }}
-                      className="flex items-center space-x-2 mt-2"
+                      className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mt-2"
                     >
-                      <Input placeholder="Name" value={ing.name} onChange={(e) => handleIngredientChange(index, 'name', e.target.value)} required />
-                      <Input placeholder="Quantity" value={ing.quantity} onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)} required className="w-24" />
-                      <Input placeholder="Unit" value={ing.unit} onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)} required className="w-24" />
+                      <Input placeholder="Name" value={ing.name} onChange={(e) => handleIngredientChange(index, 'name', e.target.value)} required className="w-full sm:w-1/3" />
+                      <Input placeholder="Quantity" value={ing.quantity} onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)} required className="w-full sm:w-24" />
+                      <Select value={ing.unit} onValueChange={(value) => handleIngredientChange(index, 'unit', value)}>
+                        <SelectTrigger className="w-full sm:w-24">
+                          <SelectValue placeholder="Unit" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {unitOptions.map((unit) => (
+                            <SelectItem key={unit} value={unit}>{unit}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <Select value={ing.category} onValueChange={(value) => handleIngredientChange(index, 'category', value)}>
-                        <SelectTrigger className="w-36">
+                        <SelectTrigger className="w-full sm:w-36">
                           <SelectValue placeholder="Category" />
                         </SelectTrigger>
                         <SelectContent>
@@ -192,7 +194,7 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
                           ))}
                         </SelectContent>
                       </Select>
-                      <Button type="button" onClick={() => removeIngredient(index)} variant="outline" size="icon"><Minus className="h-4 w-4" /></Button>
+                      <Button type="button" onClick={() => removeIngredient(index)} variant="outline" size="icon" className="mt-2 sm:mt-0"><Minus className="h-4 w-4" /></Button>
                     </motion.div>
                   ))}
                 </AnimatePresence>
@@ -214,7 +216,7 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
                       transition={{ duration: 0.2 }}
                       className="flex items-center space-x-2 mt-2"
                     >
-                      <Input value={instruction} onChange={(e) => handleArrayChange(index, 'instructions', e.target.value)} required />
+                      <Input value={instruction} onChange={(e) => handleArrayChange(index, 'instructions', e.target.value)} required className="flex-grow" />
                       <Button type="button" onClick={() => removeArrayItem(index, 'instructions')} variant="outline" size="icon"><Minus className="h-4 w-4" /></Button>
                     </motion.div>
                   ))}
@@ -225,7 +227,7 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
               </div>
             </TabsContent>
             <TabsContent value="nutrition" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="calories">Calories</Label>
                   <Input id="calories" name="calories" type="number" value={editedMeal.calories} onChange={handleInputChange} required />
@@ -255,7 +257,7 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
                       transition={{ duration: 0.2 }}
                       className="flex items-center space-x-2 mt-2"
                     >
-                      <Input value={benefit} onChange={(e) => handleArrayChange(index, 'nutritionalBenefits', e.target.value)} required />
+                      <Input value={benefit} onChange={(e) => handleArrayChange(index, 'nutritionalBenefits', e.target.value)} required className="flex-grow" />
                       <Button type="button" onClick={() => removeArrayItem(index, 'nutritionalBenefits')} variant="outline" size="icon"><Minus className="h-4 w-4" /></Button>
                     </motion.div>
                   ))}
@@ -266,11 +268,11 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
               </div>
             </TabsContent>
           </Tabs>
-          <div className="flex justify-end space-x-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
+            <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto">
               <X className="h-4 w-4 mr-2" /> Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
               {isLoading ? (
                 <>
                   <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -281,7 +283,7 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
                 </>
               ) : (
                 <>
-                  <Save className="h-4 w-4 mr-2" /> Update Meal
+                  <Save className="h-4  w-4 mr-2" /> Update Meal
                 </>
               )}
             </Button>
@@ -291,8 +293,3 @@ export default function EditMealForm({ meal, onClose, onUpdate }: EditMealFormPr
     </Card>
   )
 }
-
-/*
-Developer: Patrick Jakobsen
-Date: 10-10-2024
-*/
